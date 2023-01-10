@@ -1,6 +1,7 @@
-package head_v1.util;
+package head_v1.task_manager;
 
 public class Task {
+    // wrapper
     public LocationEntry;
     public OrdersEntry;
 

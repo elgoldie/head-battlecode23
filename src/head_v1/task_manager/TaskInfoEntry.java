@@ -1,9 +1,10 @@
-package head_v1.util;
+package head_v1.task_manager;
 import java.util.ArrayList;
 
 
 public class TaskInfoEntry extends Entry {
-    
+
+    // reads and sets corresponding flags
     public int opcode;
     public int info;
     public int[] myop;

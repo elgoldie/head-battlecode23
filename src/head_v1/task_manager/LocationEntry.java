@@ -1,7 +1,8 @@
-package head_v1.util;
+package head_v1.task_manager;
 
 public abstract class LocationEntry extends Entry {
     
+    // for anything with location + 4 flags
     public int[] coordinates = new int[2];
     public boolean[] flags = new boolean[4];
 
