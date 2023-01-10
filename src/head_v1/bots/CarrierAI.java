@@ -16,6 +16,7 @@ public class CarrierAI extends RobotAI {
         super(rc, id);
     }
 
+    public void run_v2() {} //dummy, Dylan is working on run
     @Override
     public void run() throws GameActionException {
         super.run();
