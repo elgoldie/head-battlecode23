@@ -73,6 +73,7 @@ public abstract class RobotAI {
     public void run() throws GameActionException {
         gameTurn += 1;
         aliveTurns += 1;
+        // read all
     }
 
     public void wander() throws GameActionException {
