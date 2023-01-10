@@ -6,6 +6,8 @@ import battlecode.common.*;
 
 public class Communication {
 
+    // test comment
+
     public RobotController rc;
     // prevents us from accidentally using more bytecode than necessary, reset every turn
     private int[] cache;
