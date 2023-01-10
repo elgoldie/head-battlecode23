@@ -8,12 +8,13 @@ import battlecode.common.*;
 
 public class CarrierAI extends RobotAI {
 
-    public CarrierAI(RobotController rc, int id) {
+    public CarrierAI(RobotController rc, int id) throws GameActionException {
         super(rc, id);
     }
 
     @Override
-    public void run(int turn) throws GameActionException {
+    public void run() throws GameActionException {
+        super.run();
         
         if (rc.getAnchor() != null) {
             // If I have an anchor singularly focus on getting it to the first island I see

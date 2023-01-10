@@ -26,10 +26,9 @@ public strictfp class RobotPlayer {
             case AMPLIFIER: ai = new AmplifierAI(rc, myID); break;
         }
 
-        int turnCount = 0;
         while (true) {
             try {
-                ai.run(++turnCount);
+                ai.run();
             } catch (GameActionException e) {
                 System.out.println(rc.getType() + " Exception");
                 e.printStackTrace();

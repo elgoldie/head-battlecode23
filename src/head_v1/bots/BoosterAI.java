@@ -4,12 +4,12 @@ import battlecode.common.*;
 
 public class BoosterAI extends RobotAI {
     
-    public BoosterAI(RobotController rc, int id) {
+    public BoosterAI(RobotController rc, int id) throws GameActionException {
         super(rc, id);
     }
 
     @Override
-    public void run(int turn) throws GameActionException {
-        System.out.println(turn);
+    public void run() throws GameActionException {
+        super.run();
     }
 }

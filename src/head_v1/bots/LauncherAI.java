@@ -4,12 +4,13 @@ import battlecode.common.*;
 
 public class LauncherAI extends RobotAI {
     
-    public LauncherAI(RobotController rc, int id) {
+    public LauncherAI(RobotController rc, int id) throws GameActionException {
         super(rc, id);
     }
 
     @Override
-    public void run(int turn) throws GameActionException {
+    public void run() throws GameActionException {
+        super.run();
         
         int radius = rc.getType().actionRadiusSquared;
         Team opponent = rc.getTeam().opponent();

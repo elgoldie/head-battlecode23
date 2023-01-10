@@ -4,13 +4,13 @@ import battlecode.common.*;
 
 public class HeadquartersAI extends RobotAI {
     
-    public HeadquartersAI(RobotController rc, int id) {
+    public HeadquartersAI(RobotController rc, int id) throws GameActionException {
         super(rc, id);
     }
 
     @Override
-    public void run(int turn) throws GameActionException {
-        System.out.println(this.id);
+    public void run() throws GameActionException {
+        super.run();
         
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation newLoc = rc.getLocation().add(dir);
