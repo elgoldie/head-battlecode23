@@ -32,6 +32,9 @@ public abstract class RobotAI {
     public MapLocation spawnLocation;
     public MapLocation[] hqLocations;
 
+    public String assignment = "idle";
+    public String command = "assign";
+
     public RobotAI(RobotController rc, int id) throws GameActionException {
         this.rc = rc;
         this.id = id;
@@ -51,6 +54,7 @@ public abstract class RobotAI {
         comm.clearCache();
         gameTurn += 1;
         aliveTurns += 1;
+        // read all
     }
 
     public void wander() throws GameActionException {

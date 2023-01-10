@@ -8,22 +8,12 @@ import battlecode.common.*;
 
 public class CarrierAI extends RobotAI {
 
-    /* List of modes: 
-     *  - "Reading"             (000)
-     *  - "Wandering"           (001)
-     *  - "M-transport"         (010)
-     *  - "M-gather"            (011)
-     *  - "Scouting-embarking"  (100)
-     *  - "Scouting-returning"  (101)
-     *  - "SOS"                 (110)
-     *  - "Claiming"            (111)
-    */
-    private String mode;
-
+    // Implemented assignments:
+    //  -Mining
+    
 
     public CarrierAI(RobotController rc, int id) throws GameActionException {
         super(rc, id);
-        this.mode = "";
     }
 
     @Override
