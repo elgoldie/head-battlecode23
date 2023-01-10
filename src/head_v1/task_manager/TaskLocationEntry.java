@@ -1,4 +1,4 @@
-package head_v1.util;
+package head_v1.task_manager;
 
 public class TaskLocationEntry extends LocationEntry {
     

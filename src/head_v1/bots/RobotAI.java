@@ -32,6 +32,9 @@ public abstract class RobotAI {
     public MapLocation spawnLocation;
     public int spawnIndex;
 
+    public String assignment = "idle";
+    public String command = "assign";
+
     public RobotAI(RobotController rc, int id) throws GameActionException {
         this.rc = rc;
         this.id = id;
