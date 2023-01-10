@@ -11,6 +11,16 @@ public class HeadquartersAI extends RobotAI {
     @Override
     public void run() throws GameActionException {
         super.run();
+
+        // early-game behavior, saving headquarter positions
+        if (gameTurn == 1) {
+            comm.appendLocation(0, rc.getLocation());
+        } else if (gameTurn == 2) {
+            this.hqLocations = comm.readLocationArray(0);
+            for (MapLocation loc : hqLocations) {
+                System.out.println(loc);
+            }
+        }
         
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation newLoc = rc.getLocation().add(dir);

@@ -30,7 +30,7 @@ public abstract class RobotAI {
     public int aliveTurns;
 
     public MapLocation spawnLocation;
-    public int spawnIndex;
+    public MapLocation[] hqLocations;
 
     public RobotAI(RobotController rc, int id) throws GameActionException {
         this.rc = rc;
@@ -38,36 +38,17 @@ public abstract class RobotAI {
         this.rng = new Random(id);
         this.comm = new Communication(rc);
 
-        this.gameTurn = rc.getRoundNum();
+        this.gameTurn = rc.getRoundNum() - 1;
         this.aliveTurns = 0;
+        this.spawnLocation = rc.getLocation();
 
         this.myTeam = rc.getTeam();
         this.enemyTeam = myTeam.opponent();
-        
-        if (rc.getType() == RobotType.HEADQUARTERS) {
-            // If we are the HQ, we are the spawn location.
-            spawnLocation = rc.getLocation();
-            spawnIndex = id;
-        } else {
-            // Otherwise, we need to find the HQ.
-            boolean foundHQ = false;
-            for (RobotInfo bot : rc.senseNearbyRobots(8, myTeam)) {
-                if (bot.team == myTeam && bot.type == RobotType.HEADQUARTERS) {
-                    spawnLocation = bot.location;
-                    spawnIndex = bot.ID;
-                    foundHQ = true;
-                    break;
-                }
-            }
-
-            if (!foundHQ) {
-                // this shouldn't happen
-                throw new GameActionException(GameActionExceptionType.CANT_SENSE_THAT, "Could not find HQ");
-            }
-        }
+        this.hqLocations = comm.readLocationArray(0);
     }
     
     public void run() throws GameActionException {
+        comm.clearCache();
         gameTurn += 1;
         aliveTurns += 1;
     }
