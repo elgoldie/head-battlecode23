@@ -1,7 +1,7 @@
-package head_v1;
+package macrobot;
 
 import battlecode.common.*;
-import head_v1.bots.*;
+import macrobot.bots.*;
 
 public strictfp class RobotPlayer {
 
@@ -22,7 +22,7 @@ public strictfp class RobotPlayer {
             case CARRIER: ai = new CarrierAI(rc, myID); break;
             case LAUNCHER: ai = new LauncherAI(rc, myID); break;
             case BOOSTER: ai = new BoosterAI(rc, myID); break;
-            //case DESTABILIZER: ai = new DestabilizerAI(rc, myID); break;
+            case DESTABILIZER: ai = new DestabilizerAI(rc, myID); break;
             case AMPLIFIER: ai = new AmplifierAI(rc, myID); break;
         }
 
