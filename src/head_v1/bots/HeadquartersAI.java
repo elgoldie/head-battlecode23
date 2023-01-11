@@ -33,13 +33,13 @@ public class HeadquartersAI extends RobotAI {
             if (rng.nextInt(4) ==0 && rc.getAnchor() != null) {
                 if (rng.nextBoolean()) {
                     // Let's try to build a carrier.
-                    rc.setIndicatorString("Trying to build a carrier (greater 30)");
+                    rc.setIndicatorString("Trying to build a carrier (greater 50)");
                     if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
                         rc.buildRobot(RobotType.CARRIER, newLoc);
                     }
                 } else {
                     // Let's try to build a launcher.
-                    rc.setIndicatorString("Trying to build a launcher (greater 30)");
+                    rc.setIndicatorString("Trying to build a launcher (greater 50)");
                     if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
                         rc.buildRobot(RobotType.LAUNCHER, newLoc);
                     }
@@ -49,13 +49,13 @@ public class HeadquartersAI extends RobotAI {
         } else {
             if (rng.nextBoolean()) {
                 // Let's try to build a carrier.
-                rc.setIndicatorString("Trying to build a carrier (less 30)");
+                rc.setIndicatorString("Trying to build a carrier (less 50)");
                 if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
                     rc.buildRobot(RobotType.CARRIER, newLoc);
                 }
             } else {
                 // Let's try to build a launcher.
-                rc.setIndicatorString("Trying to build a launcher (less 30)");
+                rc.setIndicatorString("Trying to build a launcher (less 50)");
                 if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
                     rc.buildRobot(RobotType.LAUNCHER, newLoc);
                 }
