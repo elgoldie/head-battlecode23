@@ -14,9 +14,8 @@ public class LauncherAI extends RobotAI {
 
         int radius = rc.getType().actionRadiusSquared;
         RobotInfo[] enemies = rc.senseNearbyRobots(radius, enemyTeam);
-        if (enemies.length >= 0) {
-            // MapLocation toAttack = enemies[0].location;
-            MapLocation toAttack = rc.getLocation().add(Direction.EAST);
+        if (enemies.length > 0) {
+            MapLocation toAttack = enemies[0].location;
 
             if (rc.canAttack(toAttack)) {
                 rc.setIndicatorString("Attacking");        
