@@ -15,6 +15,7 @@ public class HeadquartersAI extends RobotAI {
         // early-game behavior, saving headquarter positions
         if (rc.getRoundNum() == 1) {
             comm.appendLocation(0, rc.getLocation());
+            System.out.println("Head");
         } else if (rc.getRoundNum() == 2) {
             this.hqLocations = comm.readLocationArray(0);
         }
