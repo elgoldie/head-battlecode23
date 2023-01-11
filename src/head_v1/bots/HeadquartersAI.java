@@ -24,7 +24,7 @@ public class HeadquartersAI extends RobotAI {
         
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation newLoc = rc.getLocation().add(dir);
-        if (rc.canBuildAnchor(Anchor.STANDARD)) {
+        if ((rc.canBuildAnchor(Anchor.STANDARD)) && (rc.getRobotCount()>30)) {
             // If we can build an anchor do it!
             rc.buildAnchor(Anchor.STANDARD);
             rc.setIndicatorString("Building anchor! " + rc.getAnchor());
