@@ -27,7 +27,7 @@ public class HeadquartersAI extends RobotAI {
                 rc.buildAnchor(Anchor.STANDARD);
                 rc.setIndicatorString("Building anchor! " + rc.getAnchor());
             }
-            if (rng.nextInt(4) ==0 && rc.getAnchor() != null) {
+            if (rng.nextInt(2) ==0 && rc.getAnchor() != null) {
                 if (rng.nextBoolean()) {
                     // Let's try to build a carrier.
                     rc.setIndicatorString("Trying to build a carrier (greater 50)");
