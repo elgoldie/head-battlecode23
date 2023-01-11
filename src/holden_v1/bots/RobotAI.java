@@ -115,6 +115,22 @@ public abstract class RobotAI {
         return loc;
     }
 
+    public MapLocation closestIsland(Team team) throws GameActionException {
+        MapLocation closest = null;
+        int closestDist = Integer.MAX_VALUE;
+        for (int index = 5; index < rc.getIslandCount() + 5; index++) {
+            if (comm.readLocationFlags(index) == team.ordinal()) {
+                MapLocation loc = comm.readLocation(index);
+                int dist = loc.distanceSquaredTo(rc.getLocation());
+                if (dist < closestDist) {
+                    closestDist = dist;
+                    closest = loc;
+                }
+            }
+        }
+        return closest;
+    }
+
     public void scanForIslands() throws GameActionException {        
         for (int index : rc.senseNearbyIslands()) {
             // if island is undiscovered

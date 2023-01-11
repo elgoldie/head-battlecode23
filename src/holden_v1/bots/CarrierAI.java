@@ -1,9 +1,5 @@
 package holden_v1.bots;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
 import battlecode.common.*;
 
 public class CarrierAI extends RobotAI {
@@ -27,18 +23,16 @@ public class CarrierAI extends RobotAI {
         // place anchor if we have one
         if (rc.getAnchor() != null) {
 
-            int[] islands = rc.senseNearbyIslands();
-            Set<MapLocation> islandLocs = new HashSet<>();
-            for (int id : islands) {
-                MapLocation[] thisIslandLocs = rc.senseNearbyIslandLocations(id);
-                islandLocs.addAll(Arrays.asList(thisIslandLocs));
+            MapLocation island = closestIsland(Team.NEUTRAL);
+            if (island == null) {
+                wander();
+                return;
             }
-            if (islandLocs.size() > 0) {
-                MapLocation islandLocation = islandLocs.iterator().next();
-                while (!rc.getLocation().equals(islandLocation)) {
-                    Direction dir = rc.getLocation().directionTo(islandLocation);
-                    tryMove(dir);
-                }
+
+            if (!rc.getLocation().equals(island)) {
+                Direction dir = rc.getLocation().directionTo(island);
+                tryMove(dir);
+            } else {
                 if (rc.canPlaceAnchor())
                     rc.placeAnchor();
             }
@@ -96,11 +90,13 @@ public class CarrierAI extends RobotAI {
                     well_one = wells[i];
                 }
             }
-            Direction dir = rc.getLocation().directionTo(well_one.getMapLocation());
-            tryMoveOrWander(dir);
             
-            if (rc.canCollectResource(well_one.getMapLocation(), -1))
+            if (rc.canCollectResource(well_one.getMapLocation(), -1)) {
                 rc.collectResource(well_one.getMapLocation(), -1);
+            } else {
+                Direction dir = rc.getLocation().directionTo(well_one.getMapLocation());
+                tryMoveOrWander(dir);
+            }
         }
     }
 }
