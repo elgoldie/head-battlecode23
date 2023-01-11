@@ -1,4 +1,4 @@
-package head_v1.bots;
+package macrobot.bots;
 
 import battlecode.common.*;
 
@@ -11,11 +11,13 @@ public class LauncherAI extends RobotAI {
     @Override
     public void run() throws GameActionException {
         super.run();
-
+        
         int radius = rc.getType().actionRadiusSquared;
-        RobotInfo[] enemies = rc.senseNearbyRobots(radius, enemyTeam);
-        if (enemies.length > 0) {
-            MapLocation toAttack = enemies[0].location;
+        Team opponent = rc.getTeam().opponent();
+        RobotInfo[] enemies = rc.senseNearbyRobots(radius, opponent);
+        if (enemies.length >= 0) {
+            // MapLocation toAttack = enemies[0].location;
+            MapLocation toAttack = rc.getLocation().add(Direction.EAST);
 
             if (rc.canAttack(toAttack)) {
                 rc.setIndicatorString("Attacking");        
@@ -23,6 +25,10 @@ public class LauncherAI extends RobotAI {
             }
         }
 
-        wander();
+        // Also try to move randomly.
+        Direction dir = directions[rng.nextInt(directions.length)];
+        if (rc.canMove(dir)) {
+            rc.move(dir);
+        }
     }
 }

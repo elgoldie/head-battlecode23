@@ -1,9 +1,9 @@
-package head_v1.bots;
+package holden_v1.bots;
 
 import java.util.Random;
 
 import battlecode.common.*;
-import head_v1.util.Communication;
+import holden_v1.util.Communication;
 
 public abstract class RobotAI {
 
@@ -16,6 +16,20 @@ public abstract class RobotAI {
         Direction.SOUTHWEST,
         Direction.WEST,
         Direction.NORTHWEST,
+    };
+
+    public static final Direction[] orthogonalDirections = {
+        Direction.NORTH,
+        Direction.EAST,
+        Direction.SOUTH,
+        Direction.WEST
+    };
+
+    public static final Direction[] diagonalDirections = {
+        Direction.NORTHEAST,
+        Direction.SOUTHEAST,
+        Direction.SOUTHWEST,
+        Direction.NORTHWEST
     };
     
     public Random rng;
@@ -53,24 +67,36 @@ public abstract class RobotAI {
     
     public void run() throws GameActionException {
         aliveTurns += 1;
+        
+        if (rc.getType() != RobotType.HEADQUARTERS)
+            scanForIslands();
+        
+        if (rc.canWriteSharedArray(0, 0) && comm.queueActive)
+            comm.queueFlush();
     }
 
     public void wander() throws GameActionException {
-        Direction dir = directions[rng.nextInt(directions.length)];
-        if (rc.canMove(dir)) rc.move(dir);
+        if (!tryMove(diagonalDirections[rng.nextInt(4)]))
+            tryMove(orthogonalDirections[rng.nextInt(4)]);
     }
 
-    public void tryMove(Direction dir) throws GameActionException {
+    public boolean tryMove(Direction dir) throws GameActionException {
         if (rc.canMove(dir)) {
             rc.move(dir);
+            return true;
+        } else {
+            return false;
         }
     }
 
-    public void tryMoveOrWander(Direction dir) throws GameActionException {
-        if (rc.canMove(dir))
+    public boolean tryMoveOrWander(Direction dir) throws GameActionException {
+        if (rc.canMove(dir)) {
             rc.move(dir);
-        else
+            return true;
+        } else {
             wander();
+            return false;
+        }
     }
 
     public MapLocation closestHeadquarters() throws GameActionException {
@@ -87,5 +113,19 @@ public abstract class RobotAI {
             }
         }
         return loc;
+    }
+
+    public void scanForIslands() throws GameActionException {        
+        for (int index : rc.senseNearbyIslands()) {
+            // if island is undiscovered
+            int newFlag = rc.senseTeamOccupyingIsland(index).ordinal();
+            
+            if (comm.hasNoLocation(index + 4)) {
+                MapLocation islandLocation = rc.senseNearbyIslandLocations(index)[0];
+                comm.writeLocation(index + 4, islandLocation, newFlag);
+            } else if (comm.readLocationFlags(index + 4) != newFlag) {
+                comm.writeLocationFlags(index + 4, newFlag);
+            }
+        }
     }
 }
