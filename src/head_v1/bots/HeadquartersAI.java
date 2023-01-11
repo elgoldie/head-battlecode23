@@ -13,13 +13,10 @@ public class HeadquartersAI extends RobotAI {
         super.run();
 
         // early-game behavior, saving headquarter positions
-        if (gameTurn == 1) {
+        if (rc.getRoundNum() == 1) {
             comm.appendLocation(0, rc.getLocation());
-        } else if (gameTurn == 2) {
+        } else if (rc.getRoundNum() == 2) {
             this.hqLocations = comm.readLocationArray(0);
-            for (MapLocation loc : hqLocations) {
-                System.out.println(loc);
-            }
         }
         
         Direction dir = directions[rng.nextInt(directions.length)];
