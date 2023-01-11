@@ -15,18 +15,22 @@ public class HeadquartersAI extends RobotAI {
         // early-game behavior, saving headquarter positions
         if (rc.getRoundNum() == 1) {
             comm.appendLocation(0, rc.getLocation());
-            System.out.println("Head");
         } else if (rc.getRoundNum() == 2) {
             this.hqLocations = comm.readLocationArray(0);
+            for (MapLocation loc : hqLocations) {
+                System.out.println(loc);
+            }
         }
         
         Direction dir = directions[rng.nextInt(directions.length)];
-        MapLocation newLoc = rc.adjacentLocation(dir);
-        if (rng.nextBoolean()) {
-            if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
-                rc.buildRobot(RobotType.CARRIER, newLoc);
+        MapLocation newLoc = rc.getLocation().add(dir);
+        if (rc.getRobotCount()>50) {
+            if (rc.canBuildAnchor(Anchor.STANDARD)) {
+                // If we can build an anchor do it!
+                rc.buildAnchor(Anchor.STANDARD);
+                rc.setIndicatorString("Building anchor! " + rc.getAnchor());
             }
-            if (rng.nextInt(2) ==0 && rc.getAnchor() != null) {
+            if (rng.nextInt(4) ==0 && rc.getAnchor() != null) {
                 if (rng.nextBoolean()) {
                     // Let's try to build a carrier.
                     rc.setIndicatorString("Trying to build a carrier (greater 50)");
@@ -43,8 +47,18 @@ public class HeadquartersAI extends RobotAI {
             }
 
         } else {
-            if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
-                rc.buildRobot(RobotType.LAUNCHER, newLoc);
+            if (rng.nextBoolean()) {
+                // Let's try to build a carrier.
+                rc.setIndicatorString("Trying to build a carrier (less 50)");
+                if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
+                    rc.buildRobot(RobotType.CARRIER, newLoc);
+                }
+            } else {
+                // Let's try to build a launcher.
+                rc.setIndicatorString("Trying to build a launcher (less 50)");
+                if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
+                    rc.buildRobot(RobotType.LAUNCHER, newLoc);
+                }
             }
         }
     }
