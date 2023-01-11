@@ -13,31 +13,19 @@ public class HeadquartersAI extends RobotAI {
         super.run();
 
         // early-game behavior, saving headquarter positions
-        if (gameTurn == 1) {
+        if (rc.getRoundNum() == 1) {
             comm.appendLocation(0, rc.getLocation());
-        } else if (gameTurn == 2) {
+        } else if (rc.getRoundNum() == 2) {
             this.hqLocations = comm.readLocationArray(0);
-            for (MapLocation loc : hqLocations) {
-                System.out.println(loc);
-            }
         }
         
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation newLoc = rc.getLocation().add(dir);
-        if (rc.canBuildAnchor(Anchor.STANDARD)) {
-            // If we can build an anchor do it!
-            rc.buildAnchor(Anchor.STANDARD);
-            rc.setIndicatorString("Building anchor! " + rc.getAnchor());
-        }
         if (rng.nextBoolean()) {
-            // Let's try to build a carrier.
-            rc.setIndicatorString("Trying to build a carrier");
             if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
                 rc.buildRobot(RobotType.CARRIER, newLoc);
             }
         } else {
-            // Let's try to build a launcher.
-            rc.setIndicatorString("Trying to build a launcher");
             if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
                 rc.buildRobot(RobotType.LAUNCHER, newLoc);
             }

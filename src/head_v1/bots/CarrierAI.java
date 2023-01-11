@@ -1,87 +1,79 @@
 package head_v1.bots;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
 import battlecode.common.*;
 
 public class CarrierAI extends RobotAI {
-
-    // Implemented assignments:
-    //  -Mining
-    
 
     public CarrierAI(RobotController rc, int id) throws GameActionException {
         super(rc, id);
     }
 
-    public void run_v2() {} //dummy, Dylan is working on run
+    public int getInventoryWeight() throws GameActionException {
+        int weight = 0;
+        for (ResourceType type : ResourceType.values()) {
+            weight += rc.getResourceAmount(type);
+        }
+        return weight;
+    }
+
     @Override
     public void run() throws GameActionException {
         super.run();
         
-        if (rc.getAnchor() != null) {
-            // If I have an anchor singularly focus on getting it to the first island I see
-            int[] islands = rc.senseNearbyIslands();
-            Set<MapLocation> islandLocs = new HashSet<>();
-            for (int id : islands) {
-                MapLocation[] thisIslandLocs = rc.senseNearbyIslandLocations(id);
-                islandLocs.addAll(Arrays.asList(thisIslandLocs));
-            }
-            if (islandLocs.size() > 0) {
-                MapLocation islandLocation = islandLocs.iterator().next();
-                rc.setIndicatorString("Moving my anchor towards " + islandLocation);
-                while (!rc.getLocation().equals(islandLocation)) {
-                    Direction dir = rc.getLocation().directionTo(islandLocation);
-                    if (rc.canMove(dir)) {
-                        rc.move(dir);
+        // if (rc.getAnchor() != null) {
+
+        //     int[] islands = rc.senseNearbyIslands();
+        //     Set<MapLocation> islandLocs = new HashSet<>();
+        //     for (int id : islands) {
+        //         MapLocation[] thisIslandLocs = rc.senseNearbyIslandLocations(id);
+        //         islandLocs.addAll(Arrays.asList(thisIslandLocs));
+        //     }
+        //     if (islandLocs.size() > 0) {
+        //         MapLocation islandLocation = islandLocs.iterator().next();
+        //         rc.setIndicatorString("Moving my anchor towards " + islandLocation);
+        //         while (!rc.getLocation().equals(islandLocation)) {
+        //             Direction dir = rc.getLocation().directionTo(islandLocation);
+        //             if (rc.canMove(dir)) {
+        //                 rc.move(dir);
+        //             }
+        //         }
+        //         if (rc.canPlaceAnchor()) {
+        //             rc.setIndicatorString("Huzzah, placed anchor!");
+        //             rc.placeAnchor();
+        //         }
+        //     }
+        // }
+
+        if (getInventoryWeight() == 40) {
+
+            MapLocation hqLocation = closestHeadquarters();
+            tryMoveOrWander(rc.getLocation().directionTo(hqLocation));
+            
+            if (rc.getLocation().isAdjacentTo(hqLocation)) {
+                for (ResourceType type : ResourceType.values()) {
+                    int amount = rc.getResourceAmount(type);
+                    if (amount > 0 && rc.canTransferResource(hqLocation, type, amount)) {
+                        rc.transferResource(hqLocation, type, amount);
+                        break;
                     }
                 }
-                if (rc.canPlaceAnchor()) {
-                    rc.setIndicatorString("Huzzah, placed anchor!");
-                    rc.placeAnchor();
-                }
             }
-        }
-        // Try to gather from squares around us.
-        MapLocation me = rc.getLocation();
-        for (int dx = -1; dx <= 1; dx++) {
-            for (int dy = -1; dy <= 1; dy++) {
-                MapLocation wellLocation = new MapLocation(me.x + dx, me.y + dy);
-                if (rc.canCollectResource(wellLocation, -1)) {
-                    if (rng.nextBoolean()) {
-                        rc.collectResource(wellLocation, -1);
-                        rc.setIndicatorString("Collecting, now have, AD:" + 
-                            rc.getResourceAmount(ResourceType.ADAMANTIUM) + 
-                            " MN: " + rc.getResourceAmount(ResourceType.MANA) + 
-                            " EX: " + rc.getResourceAmount(ResourceType.ELIXIR));
-                    }
-                }
+
+        } else {
+            
+            // If we can see a well, move towards it
+            WellInfo[] wells = rc.senseNearbyWells();
+            if (wells.length == 0) {
+                wander();
+                return;
             }
-        }
-        // Occasionally try out the carriers attack
-        if (rng.nextInt(20) == 1) {
-            RobotInfo[] enemyRobots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-            if (enemyRobots.length > 0) {
-                if (rc.canAttack(enemyRobots[0].location)) {
-                    rc.attack(enemyRobots[0].location);
-                }
-            }
-        }
-        
-        // If we can see a well, move towards it
-        WellInfo[] wells = rc.senseNearbyWells();
-        if (wells.length > 1 && rng.nextInt(3) == 1) {
-            WellInfo well_one = wells[1];
-            Direction dir = me.directionTo(well_one.getMapLocation());
-            if (rc.canMove(dir)) 
-                rc.move(dir);
-        }
-        // Also try to move randomly.
-        Direction dir = directions[rng.nextInt(directions.length)];
-        if (rc.canMove(dir)) {
-            rc.move(dir);
+
+            WellInfo well_one = wells[0];
+            Direction dir = rc.getLocation().directionTo(well_one.getMapLocation());
+            tryMoveOrWander(dir);
+            
+            if (rc.canCollectResource(well_one.getMapLocation(), -1))
+                rc.collectResource(well_one.getMapLocation(), -1);
         }
     }
 }
