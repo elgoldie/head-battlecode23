@@ -44,7 +44,7 @@ public class CarrierAI extends RobotAI {
 
             if (getInventoryWeight() == 0) {
 
-                if (rc.canTakeAnchor(hqLocation, Anchor.STANDARD) && rng.nextBoolean()) {
+                if (rc.canTakeAnchor(hqLocation, Anchor.STANDARD)) {
                     rc.takeAnchor(hqLocation, Anchor.STANDARD);
                     System.out.println("I just took an anchor!");
                 } else {
@@ -60,11 +60,8 @@ public class CarrierAI extends RobotAI {
                     }
                 }
             }
-
-            return;
-        }
-
-        if (getInventoryWeight() == 40) {
+            
+        } else if (getInventoryWeight() == 40) {
 
             tryMoveOrWander(rc.getLocation().directionTo(hqLocation));
             
