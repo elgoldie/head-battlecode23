@@ -1,4 +1,4 @@
-package holden_v1.util;
+package holden_v1.comm;
 
 import java.util.Arrays;
 
@@ -48,6 +48,7 @@ public class Communication {
 
     public MapLocation readLocation(int index) throws GameActionException {
         int value = rc.readSharedArray(index) - 1;
+        if (value == -1) return null;
         return new MapLocation((value >> 6) & 0x3F, value & 0x3F);
     }
 
@@ -68,19 +69,37 @@ public class Communication {
         queueWrite(index, (flags << 12) + (value & 0xFFF));
     }
 
-    public MapLocation[] readLocationArray(int startIndex) throws GameActionException {
-        int length = rc.readSharedArray(startIndex);
-        MapLocation[] array = new MapLocation[length];
-        for (int i = 0; i < length; i++) {
-            array[i] = readLocation(startIndex + i + 1);
+    public MapLocation[] readLocations(int startIndex, int endIndex) throws GameActionException {
+        MapLocation[] array = new MapLocation[endIndex - startIndex];
+        for (int i = 0; i < endIndex - startIndex; i++) {
+            array[i] = readLocation(startIndex + i);
         }
         return array;
     }
 
+    public MapLocation[] readLocationsNonNull(int startIndex, int endIndex) throws GameActionException {
+        MapLocation[] array = new MapLocation[endIndex - startIndex];
+        int count = 0;
+        for (int i = 0; i < endIndex - startIndex; i++) {
+            MapLocation loc = readLocation(startIndex + i);
+            if (loc.x != 0 || loc.y != 0) {
+                array[count] = loc;
+                count++;
+            }
+        }
+        return Arrays.copyOf(array, count);
+    }
+
     public void appendLocation(int startIndex, MapLocation loc) throws GameActionException {
-        int length = rc.readSharedArray(startIndex);
-        writeLocation(startIndex + length + 1, loc);
-        queueWrite(startIndex, length + 1);
+        for (int index = startIndex; index < 64; index++) {
+            MapLocation loc2 = readLocation(index);
+            if (loc2 == null) {
+                writeLocation(index, loc);
+                return;
+            } else if (loc2.equals(loc)) {
+                return;
+            }
+        }
     }
 
     public boolean hasNoLocation(int index) throws GameActionException {

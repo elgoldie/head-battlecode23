@@ -3,7 +3,9 @@ package holden_v1.bots;
 import java.util.Random;
 
 import battlecode.common.*;
-import holden_v1.util.Communication;
+import holden_v1.comm.Communication;
+import holden_v1.path.NaivePathfinding;
+import holden_v1.path.Pathfinding;
 
 public abstract class RobotAI {
 
@@ -40,12 +42,12 @@ public abstract class RobotAI {
 
     public RobotController rc;
     public Communication comm;
+    public Pathfinding pathing;
     public int id;
 
     public int aliveTurns;
 
     public MapLocation spawnLocation;
-    public MapLocation[] hqLocations;
 
     public RobotAI(RobotController rc, int id) throws GameActionException {
         this.rc = rc;
@@ -55,14 +57,13 @@ public abstract class RobotAI {
         this.seed = rng.nextInt();
 
         this.comm = new Communication(rc);
+        this.pathing = new NaivePathfinding(rc);
         
         this.aliveTurns = 0;
         this.spawnLocation = rc.getLocation();
 
         this.myTeam = rc.getTeam();
         this.enemyTeam = myTeam.opponent();
-
-        this.hqLocations = comm.readLocationArray(0);
     }
     
     public void run() throws GameActionException {
@@ -70,6 +71,11 @@ public abstract class RobotAI {
         
         if (rc.getType() != RobotType.HEADQUARTERS)
             scanForIslands();
+        for (RobotInfo robot : rc.senseNearbyRobots(20, enemyTeam)) {
+            if (robot.getType() == RobotType.HEADQUARTERS) {
+                comm.appendLocation(4, robot.getLocation());
+            }
+        }
         
         if (rc.canWriteSharedArray(0, 0) && comm.queueActive)
             comm.queueFlush();
@@ -78,6 +84,11 @@ public abstract class RobotAI {
     public void wander() throws GameActionException {
         if (!tryMove(diagonalDirections[rng.nextInt(4)]))
             tryMove(orthogonalDirections[rng.nextInt(4)]);
+    }
+
+    public void wanderOrthogonal() throws GameActionException {
+        if (!tryMove(orthogonalDirections[rng.nextInt(4)]))
+            tryMove(diagonalDirections[rng.nextInt(4)]);
     }
 
     public boolean tryMove(Direction dir) throws GameActionException {
@@ -100,16 +111,15 @@ public abstract class RobotAI {
     }
 
     public MapLocation closestHeadquarters() throws GameActionException {
-        if (hqLocations == null) {
-            return spawnLocation;
-        }
         MapLocation loc = null;
         int dist = Integer.MAX_VALUE;
-        for (int i = 0; i < hqLocations.length; i++) {
-            int newDist = hqLocations[i].distanceSquaredTo(rc.getLocation());
+        for (int i = 0; i < 4; i++) {
+            MapLocation hqLoc = comm.readLocation(i);
+            if (hqLoc == null) break;
+            int newDist = hqLoc.distanceSquaredTo(rc.getLocation());
             if (newDist < dist) {
                 dist = newDist;
-                loc = hqLocations[i];
+                loc = hqLoc;
             }
         }
         return loc;
@@ -118,7 +128,7 @@ public abstract class RobotAI {
     public MapLocation closestIsland(Team team) throws GameActionException {
         MapLocation closest = null;
         int closestDist = Integer.MAX_VALUE;
-        for (int index = 5; index < rc.getIslandCount() + 5; index++) {
+        for (int index = 9; index < rc.getIslandCount() + 9; index++) {
             if (comm.readLocationFlags(index) == team.ordinal()) {
                 MapLocation loc = comm.readLocation(index);
                 int dist = loc.distanceSquaredTo(rc.getLocation());
@@ -136,12 +146,22 @@ public abstract class RobotAI {
             // if island is undiscovered
             int newFlag = rc.senseTeamOccupyingIsland(index).ordinal();
             
-            if (comm.hasNoLocation(index + 4)) {
+            if (comm.hasNoLocation(index + 8)) {
                 MapLocation islandLocation = rc.senseNearbyIslandLocations(index)[0];
-                comm.writeLocation(index + 4, islandLocation, newFlag);
-            } else if (comm.readLocationFlags(index + 4) != newFlag) {
-                comm.writeLocationFlags(index + 4, newFlag);
+                comm.writeLocation(index + 8, islandLocation, newFlag);
+            } else if (comm.readLocationFlags(index + 8) != newFlag) {
+                comm.writeLocationFlags(index + 8, newFlag);
             }
         }
+    }
+
+    public int amountOfTypeNearby(int radiusSquared, Team team, RobotType type) throws GameActionException {
+        int count = 0;
+        for (RobotInfo robot : rc.senseNearbyRobots(radiusSquared, team)) {
+            if (robot.getType() == type) {
+                count += 1;
+            }
+        }
+        return count;
     }
 }
