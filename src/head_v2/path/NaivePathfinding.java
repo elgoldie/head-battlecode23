@@ -10,7 +10,7 @@ public class NaivePathfinding implements Pathfinding {
 
     public MapLocation destination;
 
-    public void initiatepathfinding(MapLocation target) {
+    public void initiate_pathfinding(MapLocation target) {
         this.destination = target;
     }
 

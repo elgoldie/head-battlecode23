@@ -54,6 +54,17 @@ public class Path {
         this.rc = rc;
     }
 
+    public void initiate_pathfinding() {
+        initiate_pathfinding(new int[]{0,1});
+    }
+
+    public void initiate_pathfinding(int[] waypoints) {
+        int start = waypoints[0];
+        int end = waypoints[1];
+        this.direction = start - end > 0 ? 1 : 0;
+        this.waypoint_pointer = start - 2*direction + 1;
+    }
+
     public Direction stepnext() throws GameActionException {
 
         MapLocation myloc = rc.getLocation();
@@ -155,6 +166,15 @@ public class Path {
             if (location.distanceSquaredTo(this.waypoints.get(i)) <= threshold) { return i; }
         }
         return -1;
+    }
+
+    public int[] containsWaypoints(MapLocation location, MapLocation destination, int threshold) throws GameActionException {
+        int[] waypointers = {-1, -1};
+        for (int i = 0; i < this.waypoints.size(); i++) {
+            if (location.distanceSquaredTo(this.waypoints.get(i)) <= threshold) { waypointers[0] = i; }
+            if (destination.distanceSquaredTo(this.waypoints.get(i)) <= threshold) { waypointers[1] = i; }
+        }
+        return waypointers;
     }
     
 }
