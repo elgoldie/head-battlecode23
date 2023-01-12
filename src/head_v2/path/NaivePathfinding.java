@@ -8,6 +8,16 @@ public class NaivePathfinding implements Pathfinding {
     
     public RobotController rc;
 
+    public MapLocation destination;
+
+    public void initiatepathfinding(MapLocation target) {
+        this.destination = target;
+    }
+
+    public Direction findPath() {
+        return findPath(this.destination);
+    }
+
     public NaivePathfinding(RobotController rc) {
         this.rc = rc;
     }
