@@ -11,5 +11,11 @@ public class AmplifierAI extends RobotAI {
     @Override
     public void run() throws GameActionException {
         super.run();
+
+        for (RobotInfo robot : rc.senseNearbyRobots(20, myTeam)) {
+            if (robot.getType() == RobotType.AMPLIFIER) {
+                
+            }
+        }
     }
 }

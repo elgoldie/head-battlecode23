@@ -8,6 +8,13 @@ public class CarrierAI extends RobotAI {
         super(rc, id);
     }
 
+    // @Override
+    // public void wander() throws GameActionException {
+    //     while (rc.isMovementReady()) {
+    //         super.wander();
+    //     }
+    // }
+
     public int getInventoryWeight() throws GameActionException {
         int weight = 0;
         for (ResourceType type : ResourceType.values()) {
@@ -30,7 +37,7 @@ public class CarrierAI extends RobotAI {
             }
 
             if (!rc.getLocation().equals(island)) {
-                Direction dir = rc.getLocation().directionTo(island);
+                Direction dir = pathing.findPath(island);
                 tryMove(dir);
             } else {
                 if (rc.canPlaceAnchor())
@@ -46,7 +53,7 @@ public class CarrierAI extends RobotAI {
 
                 if (rc.canTakeAnchor(hqLocation, Anchor.STANDARD)) {
                     rc.takeAnchor(hqLocation, Anchor.STANDARD);
-                    System.out.println("I just took an anchor!");
+                    // System.out.println("I just took an anchor!");
                 } else {
                     wander();
                 }
@@ -60,14 +67,10 @@ public class CarrierAI extends RobotAI {
                     }
                 }
             }
-            
+
         } else if (getInventoryWeight() == 40) {
 
-            tryMoveOrWander(rc.getLocation().directionTo(hqLocation));
-            
-            if (rc.getLocation().isAdjacentTo(hqLocation)) {
-
-            }
+            tryMoveOrWander(pathing.findPath(hqLocation));
 
         } else {
             
@@ -91,7 +94,7 @@ public class CarrierAI extends RobotAI {
             if (rc.canCollectResource(well_one.getMapLocation(), -1)) {
                 rc.collectResource(well_one.getMapLocation(), -1);
             } else {
-                Direction dir = rc.getLocation().directionTo(well_one.getMapLocation());
+                Direction dir = pathing.findPath(well_one.getMapLocation());
                 tryMoveOrWander(dir);
             }
         }
