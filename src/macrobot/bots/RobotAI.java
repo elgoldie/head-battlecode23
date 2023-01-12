@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import battlecode.common.*;
 import macrobot.util.Communication;
 import macrobot.path.Path;
+import macrobot.util.InformationManager;
 
 public abstract class RobotAI {
 
@@ -42,21 +43,19 @@ public abstract class RobotAI {
         Direction.WEST,
         Direction.NORTHWEST,
     };
-    
 
     // SELF INFO
     public Team myTeam;
     public Team enemyTeam;
 
     public RobotController rc;
-    public Communication comm;
     public int id;
 
     public int gameTurn;
     public int aliveTurns;
 
     public MapLocation spawnLocation;
-    public MapLocation[] hqLocations;
+    public MapLocation[] hqLocations = new MapLocation[]{};
     public MapLocation myloc;
 
     // STATE SYSTEM INFO--to make enum
@@ -71,10 +70,13 @@ public abstract class RobotAI {
     public RobotInfo[] robotscan;
     public WellInfo[] wellscan;    
 
-    
+    // MY TOOLS 
+    public Communication comm;
+    public InformationManager info;
+
     // ARRAY VISION
-    public int tasklow = 5;
-    public int taskhigh = 6;
+    public int tasklow = 11;
+    public int taskhigh = 40;
     public int[] arrayvision;
     
 
@@ -90,7 +92,8 @@ public abstract class RobotAI {
 
         this.myTeam = rc.getTeam();
         this.enemyTeam = myTeam.opponent();
-        this.hqLocations = comm.readLocationArray(1);
+        //this.hqLocations = comm.readLocationArray(1);
+        //this.info = new InformationManager(this.hqLocations);
 
         
     }
@@ -99,7 +102,7 @@ public abstract class RobotAI {
         //System.out.println("SKADOOSH");
         this.arrayvision = comm.readWholeArray();
         this.myloc = rc.getLocation();
-        rc.setIndicatorString("Beginning action");
+        rc.setIndicatorString(this.assignment.toString());
         gameTurn += 1;
         aliveTurns += 1;
         //if (this.gameTurn == 2) {
@@ -167,7 +170,7 @@ public abstract class RobotAI {
 
     
     public boolean step_RH(MapLocation waypoint) throws GameActionException {
-        if (!rc.isMovementReady()) { // this should be handled elsewhere. If not, do scanning tasks
+        if (!rc.isMovementReady() || waypoint == new MapLocation(0,0)) { // this should be handled elsewhere. If not, do scanning tasks
             return false;
         }
         Direction objective = this.myloc.directionTo((waypoint));
@@ -266,6 +269,11 @@ public abstract class RobotAI {
         //rc.setIndicatorString(this.handedness + " " + objective);
         //return false;
         return true;
+    }
+
+    public MapLocation extractLocation(int raw_entry) {
+        int loc = raw_entry % 4096;
+        return new MapLocation(loc / 64, loc % 64);
     }
 
 }

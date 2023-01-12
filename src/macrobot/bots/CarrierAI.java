@@ -1,12 +1,13 @@
 package macrobot.bots;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+//import java.util.Arrays;
+//import java.util.HashSet;
+//import java.util.Set;
 
-import javax.annotation.Resource;
+//import javax.annotation.Resource;
 
 import battlecode.common.*;
+import macrobot.util.InformationManager;
 
 public class CarrierAI extends RobotAI {
 
@@ -38,26 +39,35 @@ public class CarrierAI extends RobotAI {
             if ((this.arrayvision[i+1] & op) == mining_op & this.arrayvision[i+1] % 16 > 0) {
                 this.assignment = "mining";
                 this.myMine = extractLocation(this.arrayvision[i]);
-                System.out.println("Read from index 0: "+this.arrayvision[0]);
-                this.myHQ = extractLocation(this.arrayvision[0]); //assume only one HQ for now.
+                //System.out.println("-"+i+"-");
+                //System.out.println(this.arrayvision[i] % 16384 / 4096);
+                //for (int j = 0; j < 5; j++){
+                //System.out.println("Read from index "+j+": "+this.arrayvision[j]);}
+                //this.myHQ = this.hqLocations[(this.arrayvision[i] % 16384 / 4096)];
+               
+                this.myHQ = extractLocation(this.arrayvision[(this.arrayvision[i] % 16384 / 4096) + 1] - 1);
                 this.command = "goto";
                 this.destination = this.myMine;
                 //this.arg1 = //location
                 //this.arg2 = //HQ
                 comm.queueWrite(i+1, this.arrayvision[i+1] - 1);
-                System.out.println("Mining task found. New request amount: "+(this.arrayvision[i+1] % 16 - 1));
+                //System.out.println("Mining task found. New request amount: "+(this.arrayvision[i+1] % 16 - 1));
+                //System.out.println("My mine: "+this.myMine.toString());
+                //System.out.println("My HQ: "+this.myHQ.toString());
             }
         }
     }
     
-    public MapLocation extractLocation(int raw_entry) {
-        int loc = raw_entry % 4096;
-        return new MapLocation(loc / 64, loc % 64);
-    }
+    
 
     @Override
     public void run() throws GameActionException {
         super.run();
+        //this.myloc = rc.getLocation();
+        if (this.hqLocations == new MapLocation[]{}) {
+            this.hqLocations = comm.readLocationArray(0);
+            this.info = new InformationManager(this.hqLocations);
+        }
         rc.setIndicatorString(this.assignment+": "+this.command+", "+this.destination+" "+this.handedness);
         if (this.gameTurn < 5){System.out.println(this.assignment);}
         switch (this.assignment) {
