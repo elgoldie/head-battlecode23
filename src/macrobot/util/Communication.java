@@ -6,76 +6,71 @@ import battlecode.common.*;
 
 public class Communication {
 
-    // test comment
-
     public RobotController rc;
-    // prevents us from accidentally using more bytecode than necessary, reset every turn
-    private int[] cache;
+
+    public int[] queue;
+    public boolean queueActive;
 
     public Communication(RobotController rc) {
         this.rc = rc;
-        this.cache = new int[64];
-        clearCache();
+        this.queue = new int[64];
+        for (int i = 0; i < 64; i++) queue[i] = -1;
+        this.queueActive = false;
     }
 
-    public void clearCache() {
-        for (int i = 0; i < 64; i++)
-            cache[i] = -1;
-    }
-
-    // for debug purposes, consumes 128 bytecode
-    public void printArray() throws GameActionException {
+    // for debug purposes
+    public void dispArray() throws GameActionException {
         int[] array = new int[64];
         for (int i = 0; i < 64; i++) {
             array[i] = rc.readSharedArray(i);
         }
-        System.out.println(Arrays.toString(array));
+        rc.setIndicatorString(Arrays.toString(array));
     }
 
-    public MapLocation intToLocation(int value) {
-        if (value == 0)
-            return null;
-        else
-            return new MapLocation((value >> 6) & 0x3F, (value & 0x3F) - 1);
+    public void queueWrite(int index, int value) throws GameActionException {
+        if (rc.canWriteSharedArray(index, value)) {
+            System.out.println("Now writing: "+index + " "+value);
+            rc.writeSharedArray(index, value);
+        } else {
+            queue[index] = value;
+            queueActive = true;
+        }
     }
 
-    public int locationToInt(MapLocation loc) {
-        return (loc.x << 6) + loc.y + 1;
-    }
-    
-    public int readInt(int index) throws GameActionException {
-        if (cache[index] != -1)
-            return cache[index];
-        else
-            return rc.readSharedArray(index);
-    }
-
-    public void writeInt(int index, int value) throws GameActionException {
-        rc.writeSharedArray(index, value);
-        cache[index] = value;
-    }
-
-    public int[] readRange(int startIndex, int endIndex) throws GameActionException {
-        int[] array = new int[endIndex - startIndex];
-        for (int i = startIndex; i < endIndex; i++)
-            array[i - startIndex] = readInt(i);
-        return array;
-    }
-
-    public int[] readWholeArray() throws GameActionException {
-        return readRange(0, 64);
+    public void queueFlush() throws GameActionException {
+        for (int i = 0; i < 64; i++) {
+            if (queue[i] != -1) {
+                rc.writeSharedArray(i, queue[i]);
+                queue[i] = -1;
+            }
+        }
+        queueActive = false;
     }
 
     public MapLocation readLocation(int index) throws GameActionException {
-        return intToLocation(readInt(index));
+        int value = rc.readSharedArray(index) - 1;
+        return new MapLocation((value >> 6) & 0x3F, value & 0x3F);
+    }
+
+    public int readLocationFlags(int index) throws GameActionException {
+        return rc.readSharedArray(index) >> 12;
     }
 
     public void writeLocation(int index, MapLocation loc) throws GameActionException {
-        writeInt(index, locationToInt(loc));
+        queueWrite(index, (loc.x << 6) + loc.y + 1);
+    }
+
+    public void writeLocation(int index, MapLocation loc, int flags) throws GameActionException {
+        queueWrite(index, (flags << 12) + (loc.x << 6) + loc.y + 1);
+    }
+
+    public void writeLocationFlags(int index, int flags) throws GameActionException {
+        int value = rc.readSharedArray(index);
+        queueWrite(index, (flags << 12) + (value & 0xFFF));
     }
 
     public MapLocation[] readLocationArray(int startIndex) throws GameActionException {
-        int length = 1; //readInt(startIndex);
+        int length = rc.readSharedArray(startIndex);
         MapLocation[] array = new MapLocation[length];
         for (int i = 0; i < length; i++) {
             array[i] = readLocation(startIndex + i + 1);
@@ -84,15 +79,21 @@ public class Communication {
     }
 
     public void appendLocation(int startIndex, MapLocation loc) throws GameActionException {
-        int length = readInt(startIndex);
+        int length = rc.readSharedArray(startIndex);
         writeLocation(startIndex + length + 1, loc);
-        writeInt(startIndex, length + 1);
+        queueWrite(startIndex, length + 1);
     }
 
-    public void putLocation(int startIndex, MapLocation loc, int index) throws GameActionException {
-        writeLocation(startIndex + index + 1, loc);
-        if (index >= readInt(startIndex)) {
-            writeInt(startIndex, index + 1);
-        }
+    public boolean hasNoLocation(int index) throws GameActionException {
+        return (rc.readSharedArray(index) & 0xFFF) == 0;
     }
+
+    public int[] readWholeArray() throws GameActionException {
+        int[] array = new int[64];
+        for (int i = 0; i < 64; i++) {
+            array[i] = rc.readSharedArray(i);
+        }
+        return array;
+    }
+
 }

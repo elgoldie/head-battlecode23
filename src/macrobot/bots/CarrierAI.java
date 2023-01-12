@@ -12,8 +12,6 @@ public class CarrierAI extends RobotAI {
 
     // Implemented assignments:
     //  -Mining
-    String assignment; 
-    String command;
     MapLocation myMine;   
     MapLocation myHQ;
     MapLocation destination;
@@ -40,12 +38,13 @@ public class CarrierAI extends RobotAI {
             if ((this.arrayvision[i+1] & op) == mining_op & this.arrayvision[i+1] % 16 > 0) {
                 this.assignment = "mining";
                 this.myMine = extractLocation(this.arrayvision[i]);
+                System.out.println("Read from index 0: "+this.arrayvision[0]);
                 this.myHQ = extractLocation(this.arrayvision[0]); //assume only one HQ for now.
                 this.command = "goto";
                 this.destination = this.myMine;
                 //this.arg1 = //location
                 //this.arg2 = //HQ
-                comm.writeInt(i+1, this.arrayvision[i+1] - 1);
+                comm.queueWrite(i+1, this.arrayvision[i+1] - 1);
                 System.out.println("Mining task found. New request amount: "+(this.arrayvision[i+1] % 16 - 1));
             }
         }
@@ -59,18 +58,17 @@ public class CarrierAI extends RobotAI {
     @Override
     public void run() throws GameActionException {
         super.run();
-        rc.setIndicatorString(this.assignment+": "+this.command+", "+this.destination+" "+this.RH_mode);
+        rc.setIndicatorString(this.assignment+": "+this.command+", "+this.destination+" "+this.handedness);
         if (this.gameTurn < 5){System.out.println(this.assignment);}
         switch (this.assignment) {
             case "idle":
-                if (this.gameTurn < 5) {mining_task();}
-                
-                if (this.gameTurn < 5){System.out.println(this.assignment);}
+                mining_task();
                 break;
             case "mining":
                 switch (this.command) {
                     case "goto":
-                        if (this.step_RH(this.destination)) {
+                        while (!this.myloc.isAdjacentTo(destination) && rc.isMovementReady() && this.step_RH(this.destination)) {}
+                        if (this.myloc.isAdjacentTo(destination)) {
                             rc.setIndicatorString("I've arrived!");
                             if (this.destination == this.myMine) {
                                 this.command = "gather";
@@ -87,6 +85,7 @@ public class CarrierAI extends RobotAI {
                             rc.collectResource(this.myMine, -1);
                             if (this.getInventoryWeight() == 40) {
                                 this.command = "goto";
+                                this.handedness = Handedness.NONE;
                             }
                         } else {
                             rc.setIndicatorString("hlep cnot min");
@@ -102,6 +101,7 @@ public class CarrierAI extends RobotAI {
                         }
                         if (this.getInventoryWeight() == 0) {
                             this.command = "goto";
+                            this.handedness = Handedness.NONE;
                         }
                         break;
                     

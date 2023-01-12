@@ -26,7 +26,7 @@ public class LauncherAI extends RobotAI {
         }
 
         // Also try to move randomly.
-        Direction dir = directions[rng.nextInt(directions.length)];
+        Direction dir = LEFTHANDED[rng.nextInt(LEFTHANDED.length)];
         if (rc.canMove(dir)) {
             rc.move(dir);
         }
