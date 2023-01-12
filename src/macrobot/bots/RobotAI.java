@@ -181,7 +181,6 @@ public abstract class RobotAI {
 
         if (rc.canMove(objective)){
             // no change to movequeue
-            rc.move(objective);
             switch (this.handedness) {
                 case RIGHT:
                 case LEFT:
@@ -207,15 +206,19 @@ public abstract class RobotAI {
             switch (this.handedness) {
                 case NONE:
                     counter = 0;
-                    while (!rc.canMove(RIGHTHANDED[this.righthand]) && counter < 7) {
+                    while (!rc.canMove(RIGHTHANDED[this.righthand]) && counter < 8) {
                         this.righthand = (this.righthand + 1) % 8;
                         counter ++;
                     }
+                    if (counter == 8) {
+                        return false;
+                    }
                     counter = 0;
-                    while (!rc.canMove(LEFTHANDED[this.lefthand]) && counter < 7) {
+                    while (!rc.canMove(LEFTHANDED[this.lefthand]) && counter < 8) {
                         this.lefthand = (this.lefthand + 1) % 8;
                         counter ++;
                     }
+                    
                     if (this.myloc.add(RIGHTHANDED[this.righthand]).distanceSquaredTo(waypoint) < this.myloc.add(LEFTHANDED[this.lefthand]).distanceSquaredTo(waypoint)) {
                         this.handedness = Handedness.RIGHT;
                         movequeue = RIGHTHANDED[this.righthand];
@@ -255,14 +258,14 @@ public abstract class RobotAI {
                         return false;
                     }
                     break;
-                }
-                rc.move(movequeue);
             }
             
-            this.myloc = this.myloc.add(movequeue);
-            //rc.setIndicatorString(this.handedness + " " + objective);
-            return false;
-            //return true;
+        }
+        rc.move(movequeue);
+        this.myloc = this.myloc.add(movequeue);
+        //rc.setIndicatorString(this.handedness + " " + objective);
+        //return false;
+        return true;
     }
 
 }
