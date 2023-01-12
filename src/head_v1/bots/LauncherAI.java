@@ -33,6 +33,33 @@ public class LauncherAI extends RobotAI {
             rc.attack(target.location);
         }
 
+        // MapLocation island = closestIsland(myTeam);
+        // MapLocation headquarters = closestHeadquarters();
+        // boolean atIsland = rc.getLocation().equals(island);
+        // if (island == null) {
+        //     wander();
+        //     return;
+        // }
+
+        // if (!rc.getLocation().equals(island)) {
+        //     Direction dir = rc.getLocation().directionTo(island);
+        //     tryMove(dir);
+        // } else {
+        //     int launcherCount = 0;
+        //     for (RobotInfo i : rc.senseNearbyRobots(4, myTeam)) {
+        //         if (i.type == RobotType.LAUNCHER) {
+        //             launcherCount += 1;
+        //         }
+        //     }
+        //     if (!atIsland) {
+        //         if (rng.nextInt(4) != 0) {
+        //             Direction dirHQ = rc.getLocation().directionTo(headquarters);
+        //             tryMove(dirHQ);
+        //         } 
+        //     }    
+        // }
+        
+
         wander();
     }
 }

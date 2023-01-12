@@ -8,17 +8,42 @@ public class Communication {
 
     public RobotController rc;
 
+    public int[] queue;
+    public boolean queueActive;
+
     public Communication(RobotController rc) {
         this.rc = rc;
+        this.queue = new int[64];
+        for (int i = 0; i < 64; i++) queue[i] = -1;
+        this.queueActive = false;
     }
 
     // for debug purposes
-    public void printArray() throws GameActionException {
+    public void dispArray() throws GameActionException {
         int[] array = new int[64];
         for (int i = 0; i < 64; i++) {
             array[i] = rc.readSharedArray(i);
         }
-        System.out.println(Arrays.toString(array));
+        rc.setIndicatorString(Arrays.toString(array));
+    }
+
+    public void queueWrite(int index, int value) throws GameActionException {
+        if (rc.canWriteSharedArray(index, value)) {
+            rc.writeSharedArray(index, value);
+        } else {
+            queue[index] = value;
+            queueActive = true;
+        }
+    }
+
+    public void queueFlush() throws GameActionException {
+        for (int i = 0; i < 64; i++) {
+            if (queue[i] != -1) {
+                rc.writeSharedArray(i, queue[i]);
+                queue[i] = -1;
+            }
+        }
+        queueActive = false;
     }
 
     public MapLocation readLocation(int index) throws GameActionException {
@@ -31,16 +56,16 @@ public class Communication {
     }
 
     public void writeLocation(int index, MapLocation loc) throws GameActionException {
-        rc.writeSharedArray(index, (loc.x << 6) + loc.y + 1);
+        queueWrite(index, (loc.x << 6) + loc.y + 1);
     }
 
     public void writeLocation(int index, MapLocation loc, int flags) throws GameActionException {
-        rc.writeSharedArray(index, (flags << 12) + (loc.x << 6) + loc.y + 1);
+        queueWrite(index, (flags << 12) + (loc.x << 6) + loc.y + 1);
     }
 
     public void writeLocationFlags(int index, int flags) throws GameActionException {
         int value = rc.readSharedArray(index);
-        rc.writeSharedArray(index, (flags << 12) + (value & 0xFFF));
+        queueWrite(index, (flags << 12) + (value & 0xFFF));
     }
 
     public MapLocation[] readLocationArray(int startIndex) throws GameActionException {
@@ -55,13 +80,10 @@ public class Communication {
     public void appendLocation(int startIndex, MapLocation loc) throws GameActionException {
         int length = rc.readSharedArray(startIndex);
         writeLocation(startIndex + length + 1, loc);
-        rc.writeSharedArray(startIndex, length + 1);
+        queueWrite(startIndex, length + 1);
     }
 
-    public void putLocation(int startIndex, MapLocation loc, int index) throws GameActionException {
-        writeLocation(startIndex + index + 1, loc);
-        if (index >= rc.readSharedArray(startIndex)) {
-            rc.writeSharedArray(startIndex, index + 1);
-        }
+    public boolean hasNoLocation(int index) throws GameActionException {
+        return (rc.readSharedArray(index) & 0xFFF) == 0;
     }
 }

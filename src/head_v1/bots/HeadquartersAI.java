@@ -3,6 +3,12 @@ package head_v1.bots;
 import battlecode.common.*;
 
 public class HeadquartersAI extends RobotAI {
+
+    public WellInfo startingAdamantium = null;
+    public WellInfo startingMana = null;
+
+    MapLocation optimalSpawnAdamantium = null;
+    MapLocation optimalSpawnMana = null;
     
     public HeadquartersAI(RobotController rc, int id) throws GameActionException {
         super(rc, id);
@@ -15,12 +21,44 @@ public class HeadquartersAI extends RobotAI {
         // early-game behavior, saving headquarter positions
         if (rc.getRoundNum() == 1) {
             comm.appendLocation(0, rc.getLocation());
+            // finding closest starting wells
+            WellInfo[] wells = rc.senseNearbyWells();
+            int bestDistanceAdamantium = Integer.MAX_VALUE;
+            int bestDistanceMana = Integer.MAX_VALUE;
+            if (wells != null) {
+                for (WellInfo well : wells) {
+                    int distance = rc.getLocation().distanceSquaredTo(well.getMapLocation());
+                    if (well.getResourceType() == ResourceType.ADAMANTIUM) {
+                        if (distance < bestDistanceAdamantium) {
+                            bestDistanceAdamantium = distance;
+                            startingAdamantium = well;
+                        }
+                    } else {
+                        if (distance < bestDistanceMana) {
+                            bestDistanceMana = distance;
+                            startingMana = well;
+                        }
+                    }
+                }
+    
+                // finding optimal spawn locations
+            }
+            
+
+
+
         } else if (rc.getRoundNum() == 2) {
             this.hqLocations = comm.readLocationArray(0);
             for (MapLocation loc : hqLocations) {
                 System.out.println(loc);
             }
         }
+
+
+        
+        
+
+
         
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation newLoc = rc.getLocation().add(dir);
