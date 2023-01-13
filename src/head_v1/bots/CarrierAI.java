@@ -20,6 +20,7 @@ public class CarrierAI extends RobotAI {
     }
 
     public void mine(well_location) {
+        // Assumes no storm tiles directly adjacent to well; check before calling function
         x_well = well_location.x;
         y_well = well_location.y;
         String[] directions = {"north", "north", "southeast", "north", "east", "south", "south", "west", "south"};
