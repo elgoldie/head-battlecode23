@@ -19,119 +19,121 @@ public class CarrierAI extends RobotAI {
         return weight;
     }
 
-    public void mine(MapLocation well_location) {
+    public void mine(MapLocation well_location) throws GameActionException {
         // Assumes no storm tiles directly adjacent to well; check before calling function
-        x_well = well_location.x;
-        y_well = well_location.y;
-        String[] directions = {"north", "north", "southeast", "north", "east", "south", "south", "west", "south"};
-        bot_location = rc.getLocation();
-        x_bot = bot_location.x;
-        y_bot = bot_location.y;
-        x_relative = x_well - x_bot;
-        y_relative = y_well - y_bot;
+        int x_well = well_location.x;
+        int y_well = well_location.y;
+        Direction[] directions = {Direction.NORTH, Direction.NORTH, Direction.SOUTHEAST, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.SOUTH, Direction.WEST, Direction.SOUTH};
+        MapLocation bot_location = rc.getLocation();
+        int x_bot = bot_location.x;
+        int y_bot = bot_location.y;
+        int x_relative = x_well - x_bot;
+        int y_relative = y_well - y_bot;
+        int path_index = 0;
+        boolean incoming_traffic = false;
 
         if (x_relative == -2) {
             if (y_relative == -2) {
-                rc.move("northeast");
+                rc.move(Direction.NORTHEAST);
                 path_index = 0;
             }
             else if (y_relative == -1) {
-                rc.move("east");
+                rc.move(Direction.EAST);
                 path_index = 0;
             }
             else if (y_relative == 0) {
-                rc.move("east");
+                rc.move(Direction.EAST);
                 path_index = 1;
             }
             else if (y_relative == 1) {
-                rc.move("east");
+                rc.move(Direction.EAST);
                 path_index = 2;
             }
             else {
-                rc.move("southeast");
+                rc.move(Direction.SOUTHEAST);
                 path_index = 2;
             }
         }
         else if (x_relative == -1) {
-            if (y_relative = 2) {
-                rc.move("south");
+            if (y_relative == 2) {
+                rc.move(Direction.SOUTH);
                 path_index = 2;
             }
             else if (y_relative == -1) {
-                incoming_traffic = rc.canSenseRobotAtLocation((x_bot - 1), (y_bot+1));
+                incoming_traffic = rc.canSenseRobotAtLocation(new MapLocation((x_bot - 1), (y_bot+1)));
             }
             else if (y_relative == 0) {
-                if rc.canSenseRobotAtLocation((x_bot - 1), (y_bot+1)) || rc.canSenseRobotAtLocation((x_bot - 1), (y_bot+2)) || rc.canSenseRobotAtLocation(x_bot, (y_bot+2)) {
+                if (rc.canSenseRobotAtLocation(new MapLocation((x_bot - 1), (y_bot+1))) || rc.canSenseRobotAtLocation(new MapLocation((x_bot - 1), (y_bot+2))) || rc.canSenseRobotAtLocation(new MapLocation(x_bot, (y_bot+2)))) {
                     incoming_traffic = true;
                 }
             }
             else if (y_relative == 1) {
-                incoming_traffic = rc.canSenseRobotAtLocation((x_bot + 1), (y_bot + 1));
+                incoming_traffic = rc.canSenseRobotAtLocation(new MapLocation((x_bot + 1), (y_bot + 1)));
             }
             else {
-                rc.move("north");
+                rc.move(Direction.NORTH);
                 path_index = 0;
             }
         }
         else if (x_relative == 0) {
-            if y_relative = 2 {
-                rc.move("south");
+            if (y_relative == 2) {
+                rc.move(Direction.SOUTH);
                 path_index = 4;
             }
             else if (y_relative == 1) {
-                incoming_traffic = rc.canSenseRobotAtLocation((x_bot + 1), (y_bot + 1));
+                incoming_traffic = rc.canSenseRobotAtLocation(new MapLocation((x_bot + 1), (y_bot + 1)));
             }
             else if (y_relative == -1) {
-                rc.move("south")
+                rc.move(Direction.SOUTH);
                 path_index = 8;
             }
             else {
-                rc.move("west");
+                rc.move(Direction.WEST);
             }
         }
         else if (x_relative == 1) {
             if (y_relative == 2) {
-                rc.move("south");
+                rc.move(Direction.SOUTH);
                 path_index = 5;
             }
             else if (y_relative == 1) {
-                incoming_traffic = rc.canSenseRobotAtLocation((x_bot + 1), (y_bot - 1));
+                incoming_traffic = rc.canSenseRobotAtLocation(new MapLocation((x_bot + 1), (y_bot - 1)));
             }
             else if (y_relative == 0) {
-                if rc.canSenseRobotAtLocation((x_bot + 1), (y_bot - 1)) || rc.canSenseRobotAtLocation((x_bot - 1), (y_bot - 2)) || rc.canSenseRobotAtLocation(x_bot, (y_bot - 2)) {
+                if (rc.canSenseRobotAtLocation(new MapLocation((x_bot + 1), (y_bot - 1))) || rc.canSenseRobotAtLocation(new MapLocation((x_bot - 1), (y_bot - 2))) || rc.canSenseRobotAtLocation(new MapLocation(x_bot, (y_bot - 2)))) {
                     incoming_traffic = true;
                 }
             }
             else {
-                rc.move("north");
+                rc.move(Direction.NORTH);
                 path_index = 7;
             }
         }
         else {
             if (y_relative == -2) {
-                rc.move("southwest");
+                rc.move(Direction.SOUTHWEST);
                 path_index = 7;
             }
             else if (y_relative == -1) {
-                rc.move("west");
+                rc.move(Direction.WEST);
                 path_index = 7;
             }
             else if (y_relative == 0) {
-                rc.move("west");
+                rc.move(Direction.WEST);
                 path_index = 6;
             }
             else if (y_relative == 1) {
-                rc.move("west");
+                rc.move(Direction.WEST);
                 path_index = 5;
             }
             else {
-                rc.move("northwest");
+                rc.move(Direction.NORTHWEST);
                 path_index = 5;
             }
         }
 
         for (int i = path_index; i < 8; i++) {
-            if incoming_traffic {
+            if (incoming_traffic) {
                 i--;
                 rc.collectResource(well_location, -1);
             }
