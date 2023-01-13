@@ -6,12 +6,14 @@ import battlecode.common.MapLocation;
 
 public interface Pathfinding {
 
-    public static final int waypoint_threshold = 9;
+    public static final int waypoint_threshold = 2;
 
     public void initiate_pathfinding(MapLocation target) throws GameActionException;
 
     public Direction findPath() throws GameActionException;
 
     public Direction findPath(MapLocation target);
+
+    public boolean hasArrived();
     
 }

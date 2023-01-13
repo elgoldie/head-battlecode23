@@ -32,4 +32,8 @@ public class NaivePathfinding implements Pathfinding {
         }
         return Direction.CENTER;
     }
+
+    public boolean hasArrived() {
+        return (rc.getLocation().isAdjacentTo(this.destination));
+    }
 }

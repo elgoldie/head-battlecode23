@@ -11,9 +11,15 @@ public class HeadquartersAI extends RobotAI {
         anchorCraftCooldown = 0;
     }
 
+    boolean build = true;
     @Override
     public void run() throws GameActionException {
         super.run();
+        if (build && rc.canBuildRobot(RobotType.CARRIER, rc.getLocation().add(Direction.NORTHEAST))) {
+            rc.buildRobot(RobotType.CARRIER, rc.getLocation().add(Direction.NORTHEAST));
+            build = false;
+        }
+        if (anchorCraftCooldown == 0) {return;}
         anchorCraftCooldown -= 1;
 
         comm.dispArray();
