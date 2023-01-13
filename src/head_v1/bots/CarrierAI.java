@@ -19,6 +19,128 @@ public class CarrierAI extends RobotAI {
         return weight;
     }
 
+    public void mine(well_location) {
+        x_well = well_location.x;
+        y_well = well_location.y;
+        String[] directions = {"north", "north", "southeast", "north", "east", "south", "south", "west", "south"};
+        bot_location = rc.getLocation();
+        x_bot = bot_location.x;
+        y_bot = bot_location.y;
+        x_relative = x_well - x_bot;
+        y_relative = y_well - y_bot;
+
+        if x_relative == -2 {
+            if y_relative == -2 {
+                rc.move("northeast");
+                path_index = 0;
+            }
+            else if y_relative == -1 {
+                rc.move("east");
+                path_index = 0;
+            }
+            else if y_relative == 0 {
+                rc.move("east");
+                path_index = 1;
+            }
+            else if y_relative == 1 {
+                rc.move("east");
+                path_index = 2;
+            }
+            else {
+                rc.move("southeast");
+                path_index = 2;
+            }
+        }
+        else if x_relative == -1 {
+            if y_relative = 2 {
+                rc.move("south");
+                path_index = 2;
+            }
+            else if y_relative == -1 {
+                incoming_traffic = rc.canSenseRobotAtLocation((x_bot - 1), (y_bot+1));
+            }
+            else if y_relative == 0 {
+                if rc.canSenseRobotAtLocation((x_bot - 1), (y_bot+1)) || rc.canSenseRobotAtLocation((x_bot - 1), (y_bot+2)) || rc.canSenseRobotAtLocation(x_bot, (y_bot+2)) {
+                    incoming_traffic = true;
+                }
+            }
+            else if y_relative == 1 {
+                incoming_traffic = rc.canSenseRobotAtLocation((x_bot + 1), (y_bot + 1));
+            }
+            else {
+                rc.move("north");
+                path_index = 0;
+            }
+        }
+        else if x_relative == 0 {
+            if y_relative = 2 {
+                rc.move("south");
+                path_index = 4;
+            }
+            else if y_relative == 1 {
+                incoming_traffic = rc.canSenseRobotAtLocation((x_bot + 1), (y_bot + 1));
+            }
+            else if y_relative == -1 {
+                rc.move("south")
+                path_index = 8;
+            }
+            else {
+                rc.move("west");
+            }
+        }
+        else if x_relative == 1 {
+            if y_relative == 2 {
+                rc.move("south");
+                path_index = 5;
+            }
+            else if y_relative == 1 {
+                incoming_traffic = rc.canSenseRobotAtLocation((x_bot + 1), (y_bot - 1));
+            }
+            else if y_relative == 0 {
+                if rc.canSenseRobotAtLocation((x_bot + 1), (y_bot - 1)) || rc.canSenseRobotAtLocation((x_bot - 1), (y_bot - 2)) || rc.canSenseRobotAtLocation(x_bot, (y_bot - 2)) {
+                    incoming_traffic = true;
+                }
+            }
+            else {
+                rc.move("north");
+                path_index = 7;
+            }
+        }
+        else {
+            if y_relative == -2 {
+                rc.move("southwest");
+                path_index = 7;
+            }
+            else if y_relative == -1 {
+                rc.move("west");
+                path_index = 7;
+            }
+            else if y_relative == 0 {
+                rc.move("west");
+                path_index = 6;
+            }
+            else if y_relative == 1 {
+                rc.move("west");
+                path_index = 5;
+            }
+            else {
+                rc.move("northwest");
+                path_index = 5;
+            }
+        }
+
+        for (int i = path_index; i < 8; i++) {
+            if incoming_traffic {
+                i--;
+                rc.collectResource(well_location, -1);
+            }
+            else {
+                rc.collectResource(well_location, -1);
+                rc.move(directions[i]);
+            }
+        }
+    }
+
     @Override
     public void run() throws GameActionException {
         super.run();
