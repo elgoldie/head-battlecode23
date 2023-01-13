@@ -113,47 +113,65 @@ public class HeadquartersAI extends RobotAI {
                 System.out.println(loc);
             }
             if (optimalSpawnAdamantium != null) {
-                Direction dirAdamantium = startingAdamantium.getMapLocation().directionTo(rc.getLocation());
-                if (rc.canBuildRobot(RobotType.CARRIER, optimalSpawnAdamantium)) {
+                Direction dir = directions[rng.nextInt(directions.length)];
+                do {
+                    dir = directions[rng.nextInt(directions.length)];
+                } while (!rc.canBuildRobot(RobotType.CARRIER, optimalSpawnAdamantium.add(dir)));
                     System.out.println("spawning adamantium");
-                    rc.buildRobot(RobotType.CARRIER, optimalSpawnAdamantium);
-                }
+                    rc.buildRobot(RobotType.CARRIER, optimalSpawnAdamantium.add(dir));
             } else if (optimalSpawnMana != null) {
-                Direction dirMana = startingMana.getMapLocation().directionTo(rc.getLocation());
-                    if (rc.canBuildRobot(RobotType.CARRIER, optimalSpawnMana)) {
+                Direction dir = directions[rng.nextInt(directions.length)];
+                do {
+                    dir = directions[rng.nextInt(directions.length)];
+                } while (!rc.canBuildRobot(RobotType.CARRIER, optimalSpawnMana.add(dir)));
                         System.out.println("spawning mana");
-                        rc.buildRobot(RobotType.CARRIER, optimalSpawnMana);
-                    }
-                } else {
+                        rc.buildRobot(RobotType.CARRIER, optimalSpawnMana.add(dir));
+                    
+            } else {
                 Direction dir = directions[rng.nextInt(directions.length)];
                 MapLocation newLoc = rc.getLocation().add(dir);
-                if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
+                do {
+                dir = directions[rng.nextInt(directions.length)];
+                newLoc = rc.getLocation().add(dir);
+                } while (!rc.canBuildRobot(RobotType.CARRIER, newLoc));
                     System.out.println("spawning random");
-                    rc.buildRobot(RobotType.CARRIER, newLoc);
-                }
+                    rc.buildRobot(RobotType.CARRIER, newLoc);   
             }
         } else if (rc.getRoundNum() == 3) {
             System.out.println("round3");
             if (optimalSpawnAdamantium != null) {
-                if (rc.canBuildRobot(RobotType.CARRIER, optimalSpawnAdamantium)) {
-                    rc.buildRobot(RobotType.CARRIER, optimalSpawnAdamantium);
-                }
+                Direction dir = directions[rng.nextInt(directions.length)];
+                do {
+                    dir = directions[rng.nextInt(directions.length)];
+                } while (!rc.canBuildRobot(RobotType.CARRIER, optimalSpawnAdamantium.add(dir)));
+                    System.out.println("spawning adamantium");
+                    rc.buildRobot(RobotType.CARRIER, optimalSpawnAdamantium.add(dir));
             } else if (optimalSpawnMana != null) {
-                    if (rc.canBuildRobot(RobotType.CARRIER, optimalSpawnMana)) {
-                        rc.buildRobot(RobotType.CARRIER, optimalSpawnMana);
-                    }
-                } else {
+                Direction dir = directions[rng.nextInt(directions.length)];
+                do {
+                    dir = directions[rng.nextInt(directions.length)];
+                } while (!rc.canBuildRobot(RobotType.CARRIER, optimalSpawnMana.add(dir)));
+                        System.out.println("spawning mana");
+                        rc.buildRobot(RobotType.CARRIER, optimalSpawnMana.add(dir));
+                    
+            } else {
                 Direction dir = directions[rng.nextInt(directions.length)];
                 MapLocation newLoc = rc.getLocation().add(dir);
-                if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
-                    rc.buildRobot(RobotType.CARRIER, newLoc);
-                }
+                do {
+                dir = directions[rng.nextInt(directions.length)];
+                newLoc = rc.getLocation().add(dir);
+                } while (!rc.canBuildRobot(RobotType.CARRIER, newLoc));
+                    System.out.println("spawning random");
+                    rc.buildRobot(RobotType.CARRIER, newLoc);   
             }
         } else if (rc.getRoundNum() == 4) {
             if (startingMana != null) {
-                if (rc.canBuildRobot(RobotType.CARRIER, optimalSpawnMana)) {
-                    rc.buildRobot(RobotType.CARRIER, optimalSpawnMana);
-                }
+                Direction dir = directions[rng.nextInt(directions.length)];
+                do {
+                    dir = directions[rng.nextInt(directions.length)];
+                } while (!rc.canBuildRobot(RobotType.CARRIER, optimalSpawnMana.add(dir)));
+                        System.out.println("spawning mana");
+                        rc.buildRobot(RobotType.CARRIER, optimalSpawnMana.add(dir));
             }
         } else if (rc.getRoundNum() <= 7) {
             Direction dir = directions[rng.nextInt(directions.length)];
