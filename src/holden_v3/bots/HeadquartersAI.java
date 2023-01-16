@@ -2,18 +2,17 @@ package holden_v3.bots;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import battlecode.common.*;
 
 public class HeadquartersAI extends RobotAI {
 
-    public boolean savingUpForAnchor;
+    public int anchorCraftCooldown;
     public int myIndex;
     
     public HeadquartersAI(RobotController rc, int id) throws GameActionException {
         super(rc, id);
-        savingUpForAnchor = false;
+        anchorCraftCooldown = 0;
         myIndex = -1;
     }
 
@@ -37,6 +36,7 @@ public class HeadquartersAI extends RobotAI {
     @Override
     public void run() throws GameActionException {
         super.run();
+        anchorCraftCooldown -= 1;
 
         // early-game behavior, saving headquarter positions
         if (rc.getRoundNum() == 1) {
@@ -58,21 +58,29 @@ public class HeadquartersAI extends RobotAI {
         }
         MapLocation newLoc = spawningLocations.get(rng.nextInt(spawningLocations.size()));
 
-        if (!savingUpForAnchor) {
+        if (rc.getRobotCount() > 10 && anchorCraftCooldown <= 0 && rc.getNumAnchors(Anchor.STANDARD) == 0) {
+            if (rc.canBuildAnchor(Anchor.STANDARD)) {
+                rc.buildAnchor(Anchor.STANDARD);
+                // System.out.println("I just built an anchor!");
+                anchorCraftCooldown = 50;
+            }
+        }
 
-            if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc))
-                rc.buildRobot(RobotType.LAUNCHER, newLoc);
-            else if (rc.canBuildRobot(RobotType.CARRIER, newLoc))
-                rc.buildRobot(RobotType.CARRIER, newLoc);
-            else
-                return;
-            
-            savingUpForAnchor = rng.nextInt(5) == 0;
-        
-        } else if (rc.canBuildAnchor(Anchor.STANDARD)) {
+        RobotType typeToSpawn = RobotType.CARRIER;
+        if (rc.getRoundNum() <= 4) {
+            typeToSpawn = RobotType.CARRIER;
+        } else if (rc.getRoundNum() <= 7) {
+            typeToSpawn = RobotType.LAUNCHER;
+        } else {
+            if (rng.nextInt(4) == 0) {
+                typeToSpawn = RobotType.CARRIER;
+            } else {
+                typeToSpawn = RobotType.LAUNCHER;
+            }
+        }
 
-            rc.buildAnchor(Anchor.STANDARD);
-            savingUpForAnchor = rng.nextInt(5) == 0;
+        if (rc.canBuildRobot(typeToSpawn, newLoc)) {
+            rc.buildRobot(typeToSpawn, newLoc);
         }
     }
 }
