@@ -68,6 +68,10 @@ public abstract class RobotAI {
     
     public void run() throws GameActionException {
         aliveTurns += 1;
+
+        if (this.aliveTurns > 500) {
+            rc.resign();
+        }
         
         if (rc.getType() != RobotType.HEADQUARTERS) {
             scanForIslands();

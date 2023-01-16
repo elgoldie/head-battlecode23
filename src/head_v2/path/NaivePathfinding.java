@@ -10,7 +10,7 @@ public class NaivePathfinding implements Pathfinding {
 
     public MapLocation destination;
 
-    public void initiatepathfinding(MapLocation target) {
+    public void initiate_pathfinding(MapLocation target) {
         this.destination = target;
     }
 
@@ -31,5 +31,9 @@ public class NaivePathfinding implements Pathfinding {
             direction = direction.rotateLeft();
         }
         return Direction.CENTER;
+    }
+
+    public boolean hasArrived() {
+        return (rc.getLocation().isAdjacentTo(this.destination));
     }
 }

@@ -1,11 +1,33 @@
 package head_v2.bots;
 
 import battlecode.common.*;
+import head_v2.path.*;
+
+import java.util.Random;
+//import java.util.Arrays;
 
 public class CarrierAI extends RobotAI {
 
+    public MapLocation[] destinations = new MapLocation[20];
+    public Random rng = new Random();
+
     public CarrierAI(RobotController rc, int id) throws GameActionException {
         super(rc, id);
+        paths = new WaypointPathfinding(rc);
+        int w = rc.getMapWidth();
+        int h = rc.getMapHeight();
+        for (int i = 0; i < 5; i++) {
+            this.destinations[i] = new MapLocation(rng.nextInt(w), rng.nextInt(h));
+        }
+        //this.destinations[4] = this.destinations[3].add(Direction.NORTH);
+        for (int i = 0; i < 5; i++) {
+            this.destinations[5+i] = new MapLocation(rng.nextInt(w), rng.nextInt(h));
+            this.destinations[14 - i] = new MapLocation(rng.nextInt(w), rng.nextInt(h));
+        }
+        for (int i = 0; i < 5; i++) {
+            this.destinations[15 + i] = new MapLocation(rng.nextInt(w), rng.nextInt(h));
+        }
+        paths.initiate_pathfinding(this.destinations[this.destination_counter]);
     }
 
     // @Override
@@ -23,10 +45,28 @@ public class CarrierAI extends RobotAI {
         return weight;
     }
 
+    public Pathfinding paths;
+    public int destination_counter = 0;
+    Direction dir;
     @Override
     public void run() throws GameActionException {
         super.run();
+        rc.setIndicatorString(this.destinations[this.destination_counter].toString());
+        if (paths.hasArrived()) {
+            System.out.println("I've arrived!");
+            this.destination_counter = (this.destination_counter + 1) % this.destinations.length;
+            paths.initiate_pathfinding(this.destinations[this.destination_counter]);
+        }
+        while (rc.isMovementReady() && !paths.hasArrived()) {
+            dir = paths.findPath();
+            if (dir == Direction.CENTER) {
+                break;
+            }
+            rc.move(dir);
+            break;
+        }
         
+        /*
         // place anchor if we have one
         if (rc.getAnchor() != null) {
 
@@ -97,6 +137,7 @@ public class CarrierAI extends RobotAI {
                 Direction dir = pathing.findPath(well_one.getMapLocation());
                 tryMoveOrWander(dir);
             }
-        }
+            
+        }  */
     }
 }
