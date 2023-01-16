@@ -22,7 +22,7 @@ public class WaypointPathfinding implements Pathfinding {
         //rc.setIndicatorString("Initiating pathfinding");
         MapLocation myloc = rc.getLocation();
 
-        System.out.println("Assignment: "+myloc + "->"+target);
+        //System.out.println("Assignment: "+myloc + "->"+target);
 
         int path_number = -1;
         int[] waypoints = new int[]{-1, -1};
@@ -42,17 +42,19 @@ public class WaypointPathfinding implements Pathfinding {
             this.paths.add(this.myPath);
             this.myPath.initiate_pathfinding();
         } else {
-            System.out.println("I've been down this way before!");
-            System.out.println(Arrays.toString(waypoints));
+            //System.out.println("I've been down this way before!");
+            //System.out.println(Arrays.toString(waypoints));
             this.myPath = this.paths.get(path_number);
-            System.out.println(this.myPath);
+            //System.out.println(this.myPath);
             this.myPath.initiate_pathfinding(waypoints);
         }
         this.destination = target;
-        System.out.println("My path: "+this.myPath);
+        //System.out.println("My path: "+this.myPath);
     }
 
     public Direction findPath() throws GameActionException {
+        //System.out.println("Loc");
+        //System.out.println(this.destination);
         if (this.hasArrived()) {
             return Direction.CENTER;
         }
@@ -63,8 +65,8 @@ public class WaypointPathfinding implements Pathfinding {
     public Direction findPath(MapLocation target) { return Direction.CENTER; }
 
     public boolean hasArrived() {
-        System.out.println(this.destination);
-        System.out.println(rc.getLocation());
+        //System.out.println(this.destination);
+        //System.out.println(rc.getLocation());
         return (rc.getLocation().isAdjacentTo(this.destination));
     }
 }

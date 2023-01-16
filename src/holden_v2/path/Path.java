@@ -70,7 +70,7 @@ public class Path {
         this.movequeue = Direction.CENTER;
         this.handedness = Handedness.NONE;
         this.memory_mode = false;
-        System.out.println("Initiate pathfinding called");
+        //System.out.println("Initiate pathfinding called");
         rc.setIndicatorString("Destination: "+this.waypoints.get(end).toString());
     }
 
@@ -78,6 +78,7 @@ public class Path {
         
         //TODO implement rotate right/left
         MapLocation myloc = rc.getLocation();
+        //System.out.println(myloc);
         MapLocation waypoint = this.waypoints.get(this.waypoint_pointer);
 
         rc.setIndicatorString("Next waypoint: "+waypoint.toString()+" | "+this.handedness+" | Memory: "+this.memory_mode);
