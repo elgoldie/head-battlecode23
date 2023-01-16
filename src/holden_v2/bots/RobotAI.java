@@ -3,9 +3,10 @@ package holden_v2.bots;
 import java.util.Random;
 
 import battlecode.common.*;
+import holden_v2.path.WaypointPathfinding;
 import holden_v2.comm.Communication;
 import holden_v2.path.NaivePathfinding;
-import holden_v2.path.Pathfinding;
+import holden_v2.path.*;
 
 public abstract class RobotAI {
 
@@ -57,7 +58,7 @@ public abstract class RobotAI {
         this.seed = rng.nextInt();
 
         this.comm = new Communication(rc);
-        this.pathing = new NaivePathfinding(rc);
+        this.pathing = new WaypointPathfinding(rc);
         
         this.aliveTurns = 0;
         this.spawnLocation = rc.getLocation();

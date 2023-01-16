@@ -8,6 +8,16 @@ public class NaivePathfinding implements Pathfinding {
     
     public RobotController rc;
 
+    public MapLocation destination;
+
+    public void initiate_pathfinding(MapLocation target) {
+        this.destination = target;
+    }
+
+    public Direction findPath() {
+        return findPath(this.destination);
+    }
+
     public NaivePathfinding(RobotController rc) {
         this.rc = rc;
     }
@@ -21,5 +31,9 @@ public class NaivePathfinding implements Pathfinding {
             direction = direction.rotateLeft();
         }
         return Direction.CENTER;
+    }
+
+    public boolean hasArrived() {
+        return (rc.getLocation().isAdjacentTo(this.destination));
     }
 }

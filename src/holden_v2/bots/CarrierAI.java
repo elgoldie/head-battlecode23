@@ -5,7 +5,7 @@ import battlecode.common.*;
 public class CarrierAI extends RobotAI {
 
     public CarrierAI(RobotController rc, int id) throws GameActionException {
-        super(rc, id);
+        super(rc, id);       
     }
 
     @Override

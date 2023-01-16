@@ -5,10 +5,19 @@ import battlecode.common.*;
 public class LauncherAI extends RobotAI {
     
     public boolean offense;
+    public String indicatorString;
     
     public LauncherAI(RobotController rc, int id) throws GameActionException {
         super(rc, id);
-        offense = rng.nextBoolean();
+        if (rng.nextInt(10) == 0) {
+            offense = false;
+            indicatorString = "defense";
+        } else {
+            offense = true;
+            indicatorString = "offense";
+            
+        }
+        
     }
 
     public MapLocation closestEnemyHeadquarters() throws GameActionException {
@@ -56,6 +65,7 @@ public class LauncherAI extends RobotAI {
     @Override
     public void run() throws GameActionException {
         super.run();
+        rc.setIndicatorString(indicatorString);
 
         int radius = rc.getType().actionRadiusSquared;
 

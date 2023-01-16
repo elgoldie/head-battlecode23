@@ -8,13 +8,8 @@ import java.util.Random;
 
 public class CarrierAI extends RobotAI {
 
-<<<<<<< Updated upstream
     public MapLocation[] destinations = new MapLocation[20];
     public Random rng = new Random();
-=======
-    public MapLocation wellTarget;
-    public MapLocation islandTarget;
->>>>>>> Stashed changes
 
     public CarrierAI(RobotController rc, int id) throws GameActionException {
         super(rc, id);
@@ -50,7 +45,6 @@ public class CarrierAI extends RobotAI {
         return weight;
     }
 
-<<<<<<< Updated upstream
     public Pathfinding paths;
     public int destination_counter = 0;
     Direction dir;
@@ -71,32 +65,6 @@ public class CarrierAI extends RobotAI {
             rc.move(dir);
             break;
         }
-=======
-    public void chooseRandomWell() throws GameActionException {
-        MapLocation[] wellsAdamantium = comm.readLocationsNonNull(comm.WELL_ADAMANTIUM_OFFSET, comm.WELL_MANA_OFFSET);
-        MapLocation[] wellsMana = comm.readLocationsNonNull(comm.WELL_MANA_OFFSET, comm.ISLAND_OFFSET);
-        int manaChance = rc.getRoundNum() >= 100 ? 2 : 4;
-        if (rng.nextInt(manaChance) == 0) {
-            if (wellsMana.length > 0) {
-                wellTarget = wellsMana[rng.nextInt(wellsMana.length)];
-            } else {
-                wellTarget = null;
-            }
-        } else {
-            if (wellsAdamantium.length > 0) {
-                wellTarget = wellsAdamantium[rng.nextInt(wellsAdamantium.length)];
-            } else {
-                wellTarget = null;
-            }
-        }
-    }
-
-    @Override
-    public void run() throws GameActionException {
-        super.run();
-
-        rc.setIndicatorString("Well: " + wellTarget);
->>>>>>> Stashed changes
         
         /*
         // place anchor if we have one
