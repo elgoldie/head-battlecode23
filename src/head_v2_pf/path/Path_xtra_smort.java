@@ -1,5 +1,6 @@
-package head_v2_pf.path;
+package head_v2.path;
 
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -9,9 +10,9 @@ public class Path {
     
     public RobotController rc;
 
-    // WAYPOINT TRACKING
-    public ArrayList<MapLocation> waypoints = new ArrayList<MapLocation>();
-    public ArrayList<MapLocation> ohNoes = new ArrayList<MapLocation>();
+    // WAYPOINT 
+    @SuppressWarnings("unchecked")
+    public ArrayList<Waypoint>[] waypoints = (ArrayList<Waypoint>[]) new ArrayList[2];
 
     public int waypoint_pointer = -1;
     public int direction = 0; //0 = forward (origin -> destination), 1 = backwards
@@ -23,17 +24,30 @@ public class Path {
         LEFT,
         RIGHT
     }
+
+    public enum HandType {
+        NONE,
+        UNKNOWN,
+        CERTAIN,
+        FORCED,
+        PROVISIONAL
+    }
+
     public boolean memory_mode;
     
     public Handedness handedness = Handedness.NONE;
     public Direction lefthand;
     public Direction righthand;
+    public int stepcount;
+
     public Direction myMove;
+    public MapLocation myBonk;
     
     
 
-    public Path (MapLocation origin, MapLocation destination, RobotController rc) {
-        this.waypoints.add(origin); this.waypoints.add(destination);
+    public Path(MapLocation origin, MapLocation destination, RobotController rc) {
+        this.waypoints[0].add(new Waypoint(origin)); this.waypoints[0].add(new Waypoint(destination));
+        this.waypoints[1].add(new Waypoint(origin)); this.waypoints[1].add(new Waypoint(destination));
         this.rc = rc;
     }
 
@@ -46,11 +60,56 @@ public class Path {
         int start = waypoints[0];
         int end = waypoints[1];
         this.direction = start - end > 0 ? 1 : 0;
-        this.waypoint_pointer = start - 2*direction + 1;
         this.handedness = Handedness.NONE;
         this.memory_mode = false;
         this.myMove = Direction.CENTER;
-        rc.setIndicatorString("Destination: "+this.waypoints.get(end).toString());
+
+        this.waypoint_pointer = advanced_pointer(start, 1);
+
+        int[] index_shift = new int[2];
+
+        // skip past CERTAIN entries
+
+        // i = 0: start (with direction) | 1: end (against direction). 
+        // j = 0: FW index | 1: BW index.
+        for (int i = 0; i < 2; i++) {
+            for (int j = 0; j < 2; j++) {   
+                index_shift[j] = 1 - i - j;
+            }            
+            //FW            start index     corresp. shift                                      BW                  start index
+            while (this.waypoints[0].get(waypoints[i] + index_shift[0]).handtype == HandType.CERTAIN && this.waypoints[1].get(waypoints[i] + index_shift[1]).handtype == HandType.CERTAIN) {
+                waypoints[i] = advanced_pointer(waypoints[i], 1);
+            }
+        }
+        
+        int next_uncertain_pointer = waypoints[this.direction] + index_shift[this.direction];
+        if (isValid(advanced_pointer(next_uncertain_pointer, 1))) {
+            // need to find next handed WP
+            Waypoint first_fw_uncertain = this.waypoints[this.direction].get(next_uncertain_pointer);
+            Waypoint second_fw_uncertain = this.waypoints[this.direction].get(advanced_pointer(next_uncertain_pointer, 1));
+            Waypoint first_bw_uncertain = this.waypoints[1 - this.direction].get(next_uncertain_pointer);
+            Waypoint second_bw_uncertain = this.waypoints[1 - this.direction].get(advanced_pointer(next_uncertain_pointer, 1));
+            
+            if ((first_fw_uncertain.handtype == HandType.NONE || first_fw_uncertain.handtype == HandType.UNKNOWN)) {
+                if (first_bw_uncertain.handtype == HandType.NONE && second_bw_uncertain.handtype == HandType.NONE) {
+                    if (second_bw_uncertain.handtype == HandType.NONE) {
+                        // forced
+                    }
+                }
+            }
+        }
+        
+        // if unknown, work with maxes. Else, mins.
+
+
+
+
+        //this.waypoint_pointer = start - 2*direction + 1;
+        
+    }
+
+    public int direction_sign(int d) {
+        return -2*d+1;
     }
 
     public void advance_pointer() {
@@ -59,20 +118,28 @@ public class Path {
         //System.out.println("New pointer: "+this.waypoint_pointer);
     }
 
+    // advance to next handed? 
+
     public int advanced_pointer(int i) {
         return this.waypoint_pointer - i*(2*direction - 1);
     }
 
+    public int advanced_pointer(int pointer, int i) {
+        return pointer - i*(2*direction - 1);
+    }
+
     public boolean isEndpoint() {
-        return (this.waypoint_pointer == 0 && this.direction == 1) || (this.waypoint_pointer == this.waypoints.size() - 1 && this.direction == 0);
+        // TODO : revamp
+        return (this.waypoint_pointer == 0 && this.direction == 1) || (this.waypoint_pointer == this.waypoints[0].size() - 1 && this.direction == 0);
     }
 
     public boolean isValid(int pointer) {
-        return (pointer >= 0 && pointer <= this.waypoints.size() - 1);
+        return (pointer >= 0 && pointer <= this.waypoints[this.direction].size() - 1);
     }
 
     public boolean hasArrived(MapLocation myloc) {
-        return this.isEndpoint() && myloc.isAdjacentTo(this.waypoints.get(this.waypoint_pointer));
+        // might need full endpoint/destination tracking
+        return this.isEndpoint() && myloc.isAdjacentTo(this.waypoints[this.direction].get(this.waypoint_pointer));
     }
 
     public Direction stepnext() throws GameActionException { 
@@ -254,7 +321,7 @@ public class Path {
     // memory
     public void add_found_waypoint(MapLocation waypoint) {
         // Waypoint pointer points to present destination. 
-        // forwards: add before 
+        // forwards: add before
         // backwards: add after
         System.out.println("I've found a new waypoint!");
         this.waypoints.add(this.waypoint_pointer + this.direction, waypoint);
@@ -293,9 +360,18 @@ public class Path {
         return waypointers;
     }
 
+
+    // HELPERS
+
     public float dot(Direction d1, Direction d2) {
         return d1.dx * d2.dx + d1.dy * d2.dy;
     }
+
+    public float min_steps(MapLocation m1, MapLocation m2) {
+        return Math.min(Math.abs(m1.x - m2.x), Math.min(Math.abs(m1.y - m2.y)));
+    }
+
+
 
     public String toString() {
         String ret = "";
@@ -310,3 +386,4 @@ public class Path {
     }
     
 }
+

@@ -1,4 +1,4 @@
-package head_v2.bots;
+package head_v2_pf.bots;
 
 import battlecode.common.*;
 import head_v2.path.*;

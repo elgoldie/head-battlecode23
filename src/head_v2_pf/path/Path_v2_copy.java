@@ -1,4 +1,4 @@
-package head_v2.path;
+package head_v2_pf.path;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,6 +11,7 @@ public class Path_v2_copy {
 
     // WAYPOINT TRACKING
     public ArrayList<MapLocation> waypoints = new ArrayList<MapLocation>();
+    public ArrayList<MapLocation> ohNoes = new ArrayList<MapLocation>();
 
     public int waypoint_pointer = -1;
     public int direction = 0; //0 = forward (origin -> destination), 1 = backwards
@@ -253,7 +254,7 @@ public class Path_v2_copy {
     // memory
     public void add_found_waypoint(MapLocation waypoint) {
         // Waypoint pointer points to present destination. 
-        // forwards: add before
+        // forwards: add before 
         // backwards: add after
         System.out.println("I've found a new waypoint!");
         this.waypoints.add(this.waypoint_pointer + this.direction, waypoint);

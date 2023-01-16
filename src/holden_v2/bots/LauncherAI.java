@@ -6,6 +6,7 @@ public class LauncherAI extends RobotAI {
     
     public boolean offense;
     public String indicatorString;
+    public MapLocation destination;
     
     public LauncherAI(RobotController rc, int id) throws GameActionException {
         super(rc, id);
@@ -52,13 +53,22 @@ public class LauncherAI extends RobotAI {
                 dist = newDist;
                 loc = hqLoc;
             }
+            //we need a better resource for our flags and shit eom
         }
         if (loc == null) {
-            wander();
+            // meaning: is not actively seeking to defend a base
+            wander(); // replace this
+
+            // TODO figure out what launcher behavior is if not defending base. E.g. work with Holden to figure out where it thinks enemy HQ is.
             return false;
         } else {
-            tryMoveOrWander(pathing.findPath(loc));
+            if (loc != this.destination) {
+                this.destination = loc;
+                pathing.initiate_pathfinding(this.destination);
+            }
             return true;
+            //tryMoveOrWander(pathing.findPath(loc));
+            //return true;
         }
     }
 
@@ -79,6 +89,21 @@ public class LauncherAI extends RobotAI {
             }
         }
 
+
+        /* current logic:
+        if visible target: 
+            chase the target
+        else if base defense mode is on:
+            pathfind towards hq emitting distress signal 
+        else if enemy HQ location known:
+            pathfind towards location of interest (enemy HQ > enemy island > friendly island)
+        else:
+            wander (done inside baseDefenseMovement)
+
+        MOST IMPORTANT THING:
+            if not attempting to chase a target in range, NEED TO SET this.destination AND INITIATE PATHFINDING inside the 
+            baseDefenseMovement() function. You'll probably want to change that to not return a boolean. 
+        */
         if (target != null) {
             if (rc.canAttack(target.location)) {      
                 rc.attack(target.location);
@@ -87,7 +112,7 @@ public class LauncherAI extends RobotAI {
             }
         }
 
-        if (!baseDefenseMovement()) {
+        else if (!baseDefenseMovement()) {
             MapLocation enemyHQ = closestEnemyHeadquarters();
             if (enemyHQ != null) {
                 tryMoveOrWander(pathing.findPath(enemyHQ));
@@ -108,6 +133,21 @@ public class LauncherAI extends RobotAI {
                 } else {
                     tryMoveOrWander(pathing.findPath(island));
                 }
+            }
+        }
+
+        else {
+            Direction dir;
+            //WHILE PATHFINDING TO A DESTINATION IS INITIATED, this is the cycle you use to move as much as possible.
+            // This should probably be put into its own method inside robotAI instead. This is why I like the assignment/command system.
+            while (rc.isMovementReady() && !pathing.hasArrived()) {
+                dir = pathing.findPath();
+                if (dir == Direction.CENTER) {
+                    // if can't move/something else has gone wrong
+                    break;
+                }
+                rc.move(dir);
+
             }
         }
     }
