@@ -1,4 +1,4 @@
-package holden_v3.path;
+package holden_v3.path_old;
 
 import battlecode.common.Direction;
 import battlecode.common.MapLocation;

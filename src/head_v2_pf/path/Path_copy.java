@@ -1,11 +1,11 @@
-package head_v2.path;
+package head_v2_pf.path;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
 import battlecode.common.*;
 
-public class Path {
+public class Path_copy {
     
     public RobotController rc;
 
@@ -52,9 +52,7 @@ public class Path {
 
     
 
-    public Path(MapLocation origin, MapLocation destination, RobotController rc) {
-        System.out.println("Using wrong path");
-        rc.resign();
+    public Path_copy(MapLocation origin, MapLocation destination, RobotController rc) {
         this.waypoints.add(origin); this.waypoints.add(destination);
         this.rc = rc;
     }
@@ -129,7 +127,7 @@ public class Path {
                 System.out.println(this.movequeue.opposite());
                 System.out.println(this.movequeue.opposite().rotateRight());
                 System.out.println(this.movequeue.opposite().rotateLeft());
-                rc.setIndicatorString("Handedness change ignored!");
+                rc.setIndicatorString("Handedness change ignored blyat!");
             }     
             
         } 
