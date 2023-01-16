@@ -1,11 +1,11 @@
-package head_v2.bots;
+package holden_v2.bots;
 
 import java.util.Random;
 
 import battlecode.common.*;
-import head_v2.comm.Communication;
-import head_v2.path.NaivePathfinding;
-import head_v2.path.Pathfinding;
+import holden_v2.comm.Communication;
+import holden_v2.path.NaivePathfinding;
+import holden_v2.path.Pathfinding;
 
 public abstract class RobotAI {
 
@@ -68,16 +68,9 @@ public abstract class RobotAI {
     
     public void run() throws GameActionException {
         aliveTurns += 1;
-
-        if (this.aliveTurns > 500) {
-            rc.resign();
-        }
         
-        if (rc.getType() != RobotType.HEADQUARTERS) {
+        if (rc.getType() != RobotType.HEADQUARTERS)
             scanForIslands();
-            scanForWells();
-        }
-
         for (RobotInfo robot : rc.senseNearbyRobots(20, enemyTeam)) {
             if (robot.getType() == RobotType.HEADQUARTERS) {
                 comm.appendLocation(4, robot.getLocation());
@@ -86,10 +79,6 @@ public abstract class RobotAI {
         
         if (rc.canWriteSharedArray(0, 0) && comm.queueActive)
             comm.queueFlush();
-    }
-
-    public void postRun() throws GameActionException {
-        comm.keepAliveFlush();
     }
 
     public void wander() throws GameActionException {
@@ -121,17 +110,11 @@ public abstract class RobotAI {
         }
     }
 
-    public MapLocation closestHeadquarters(Team team) throws GameActionException {
-
-        int offset = comm.HQ_FRIENDLY_OFFSET;
-        if (team != myTeam) {
-            offset = comm.HQ_ENEMY_OFFSET;
-        }
-
+    public MapLocation closestHeadquarters() throws GameActionException {
         MapLocation loc = null;
         int dist = Integer.MAX_VALUE;
         for (int i = 0; i < 4; i++) {
-            MapLocation hqLoc = comm.readLocation(offset + i);
+            MapLocation hqLoc = comm.readLocation(i);
             if (hqLoc == null) break;
             int newDist = hqLoc.distanceSquaredTo(rc.getLocation());
             if (newDist < dist) {
@@ -145,9 +128,10 @@ public abstract class RobotAI {
     public MapLocation closestIsland(Team team) throws GameActionException {
         MapLocation closest = null;
         int closestDist = Integer.MAX_VALUE;
-        for (int index = comm.ISLAND_OFFSET; index < rc.getIslandCount() + comm.ISLAND_OFFSET; index++) {
+        for (int index = 9; index < rc.getIslandCount() + 9; index++) {
             if (comm.readLocationFlags(index) == team.ordinal()) {
                 MapLocation loc = comm.readLocation(index);
+                if (loc == null) continue;
                 int dist = loc.distanceSquaredTo(rc.getLocation());
                 if (dist < closestDist) {
                     closestDist = dist;
@@ -162,23 +146,12 @@ public abstract class RobotAI {
         for (int index : rc.senseNearbyIslands()) {
             // if island is undiscovered
             int newFlag = rc.senseTeamOccupyingIsland(index).ordinal();
-            int commIndex = comm.ISLAND_OFFSET + index - 1;
-
-            if (!comm.hasLocation(commIndex)) {
+            
+            if (comm.hasNoLocation(index + 8)) {
                 MapLocation islandLocation = rc.senseNearbyIslandLocations(index)[0];
-                comm.writeLocation(commIndex, islandLocation, newFlag);
-            } else if (comm.readLocationFlags(commIndex) != newFlag) {
-                comm.writeLocationFlags(commIndex, newFlag);
-            }
-        }
-    }
-
-    public void scanForWells() throws GameActionException {
-        for (WellInfo well : rc.senseNearbyWells()) {
-            if (well.getResourceType() == ResourceType.ADAMANTIUM && !comm.hasLocation(comm.WELL_ADAMANTIUM_OFFSET + 3)) {
-                comm.queueAppend(comm.WELL_ADAMANTIUM_OFFSET, well.getMapLocation());
-            } else if (well.getResourceType() == ResourceType.MANA && !comm.hasLocation(comm.WELL_MANA_OFFSET + 3)) {
-                comm.queueAppend(comm.WELL_MANA_OFFSET, well.getMapLocation());
+                comm.writeLocation(index + 8, islandLocation, newFlag);
+            } else if (comm.readLocationFlags(index + 8) != newFlag) {
+                comm.writeLocationFlags(index + 8, newFlag);
             }
         }
     }

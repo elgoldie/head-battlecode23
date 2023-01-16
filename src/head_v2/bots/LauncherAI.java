@@ -4,41 +4,36 @@ import battlecode.common.*;
 
 public class LauncherAI extends RobotAI {
 
-    private enum LauncherSquadron {
-        DEFENSE_BASE,
-        DEFENSE_ISLAND,
-        OFFENSE
-    }
-
-    public LauncherSquadron squadron;
+    public int closestFleetUnfilled;
+    public int closestFleetAny;
     
     public LauncherAI(RobotController rc, int id) throws GameActionException {
         super(rc, id);
-        if (rng.nextInt(5) < 2) {
-            squadron = LauncherSquadron.OFFENSE;
-        } else {
-            squadron = LauncherSquadron.DEFENSE_BASE;
-        }
-    }
-
-    public MapLocation closestEnemyHeadquarters() throws GameActionException {
-        MapLocation loc = null;
-        int dist = Integer.MAX_VALUE;
-        for (int i = 4; i < 8; i++) {
-            MapLocation hqLoc = comm.readLocation(i);
-            if (hqLoc == null) break;
-            int newDist = rc.getLocation().distanceSquaredTo(hqLoc);
-            if (newDist < dist) {
-                dist = newDist;
-                loc = hqLoc;
-            }
-        }
-        return loc;
+        closestFleetUnfilled = -1;
+        closestFleetAny = -1;
     }
 
     public int enemyValue(RobotInfo robot) {
         if (robot.getType() == RobotType.HEADQUARTERS) return Integer.MIN_VALUE;
         return -robot.health;
+    }
+
+    public void scanForFleets() throws GameActionException {
+        int distUnfilled = Integer.MAX_VALUE;
+        int distAny = Integer.MAX_VALUE;
+
+        for (int i = comm.FLEET_OFFSET; i < 64; i++) {
+            if (!comm.hasLocation(i)) break;
+            int d = rc.getLocation().distanceSquaredTo(comm.readLocation(i));
+            if (d < distAny) {
+                distAny = d;
+                closestFleetAny = i;
+            }
+            if (d < distUnfilled && (rc.readSharedArray(i) & 0x4000) == 0) {
+                distUnfilled = d;
+                closestFleetUnfilled = i;
+            }
+        }
     }
 
     @Override
@@ -49,6 +44,7 @@ public class LauncherAI extends RobotAI {
 
         int maxValue = Integer.MIN_VALUE;
         RobotInfo target = null;
+        
         for (RobotInfo robot : rc.senseNearbyRobots(radius, enemyTeam)) {
             int value = enemyValue(robot);
             if (value > maxValue) {
@@ -58,16 +54,22 @@ public class LauncherAI extends RobotAI {
         }
 
         if (target != null && rc.canAttack(target.location)) {
-            rc.setIndicatorString("Attacking");        
             rc.attack(target.location);
         }
 
-        if (squadron == LauncherSquadron.OFFENSE) {
-            MapLocation enemyHQ = closestEnemyHeadquarters();
-            if (enemyHQ == null) {
-                wander();
+        scanForFleets();
+
+        if (closestFleetUnfilled != -1) {
+            MapLocation fleetLocation = comm.readLocation(closestFleetUnfilled);
+            Direction dir = pathing.findPath(fleetLocation);
+            tryMove(dir);
+        } else if (closestFleetAny != -1) {
+            MapLocation fleetLocation = comm.readLocation(closestFleetAny);
+            if (rc.getLocation().distanceSquaredTo(fleetLocation) < 34) {
+                Direction dir = pathing.findPath(fleetLocation);
+                tryMove(dir);
             } else {
-                tryMoveOrWander(pathing.findPath(enemyHQ));
+                wander();
             }
         } else {
             wander();
