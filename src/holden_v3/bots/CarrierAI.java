@@ -85,9 +85,9 @@ public class CarrierAI extends RobotAI {
             if (rc.canCollectResource(targetWell, -1)) {
                 rc.collectResource(targetWell, -1);
             } else {
-                tryMoveOrWander(pathing.findPath(targetWell));
+                tryMove(pathing.findPath(targetWell));
                 if (rc.isMovementReady())
-                    tryMoveOrWander(pathing.findPath(targetWell));
+                    tryMove(pathing.findPath(targetWell));
             }
         } else {
             wander();
