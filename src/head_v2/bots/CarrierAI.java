@@ -8,8 +8,13 @@ import java.util.Random;
 
 public class CarrierAI extends RobotAI {
 
+<<<<<<< Updated upstream
     public MapLocation[] destinations = new MapLocation[20];
     public Random rng = new Random();
+=======
+    public MapLocation wellTarget;
+    public MapLocation islandTarget;
+>>>>>>> Stashed changes
 
     public CarrierAI(RobotController rc, int id) throws GameActionException {
         super(rc, id);
@@ -45,6 +50,7 @@ public class CarrierAI extends RobotAI {
         return weight;
     }
 
+<<<<<<< Updated upstream
     public Pathfinding paths;
     public int destination_counter = 0;
     Direction dir;
@@ -65,6 +71,32 @@ public class CarrierAI extends RobotAI {
             rc.move(dir);
             break;
         }
+=======
+    public void chooseRandomWell() throws GameActionException {
+        MapLocation[] wellsAdamantium = comm.readLocationsNonNull(comm.WELL_ADAMANTIUM_OFFSET, comm.WELL_MANA_OFFSET);
+        MapLocation[] wellsMana = comm.readLocationsNonNull(comm.WELL_MANA_OFFSET, comm.ISLAND_OFFSET);
+        int manaChance = rc.getRoundNum() >= 100 ? 2 : 4;
+        if (rng.nextInt(manaChance) == 0) {
+            if (wellsMana.length > 0) {
+                wellTarget = wellsMana[rng.nextInt(wellsMana.length)];
+            } else {
+                wellTarget = null;
+            }
+        } else {
+            if (wellsAdamantium.length > 0) {
+                wellTarget = wellsAdamantium[rng.nextInt(wellsAdamantium.length)];
+            } else {
+                wellTarget = null;
+            }
+        }
+    }
+
+    @Override
+    public void run() throws GameActionException {
+        super.run();
+
+        rc.setIndicatorString("Well: " + wellTarget);
+>>>>>>> Stashed changes
         
         /*
         // place anchor if we have one
@@ -85,7 +117,7 @@ public class CarrierAI extends RobotAI {
             }
         }
         
-        MapLocation hqLocation = closestHeadquarters();
+        MapLocation hqLocation = closestHeadquarters(myTeam);
 
         if (rc.getLocation().isAdjacentTo(hqLocation)) {
 
@@ -95,7 +127,7 @@ public class CarrierAI extends RobotAI {
                     rc.takeAnchor(hqLocation, Anchor.STANDARD);
                     // System.out.println("I just took an anchor!");
                 } else {
-                    wander();
+                    chooseRandomWell();
                 }
 
             } else {
@@ -107,35 +139,24 @@ public class CarrierAI extends RobotAI {
                     }
                 }
             }
+        }
 
-        } else if (getInventoryWeight() == 40) {
+        if (getInventoryWeight() == 40) {
 
-            tryMoveOrWander(pathing.findPath(hqLocation));
-
+            tryMove(pathing.findPath(hqLocation));
         } else {
-            
-            // If we can see a well, move towards it
-            WellInfo[] wells = rc.senseNearbyWells();
-            if (wells.length == 0) {
-                wander();
-                return;
-            }
-
-            WellInfo well_one = null;
-            int bestDistance = Integer.MAX_VALUE;
-            for (int i = 0; i < wells.length; i++) {
-                int distance = rc.getLocation().distanceSquaredTo(wells[i].getMapLocation());
-                if (distance < bestDistance) {
-                    bestDistance = distance;
-                    well_one = wells[i];
+            if (wellTarget == null) chooseRandomWell();
+            if (wellTarget != null) {
+                
+                if (rc.canCollectResource(wellTarget, -1)) {
+                    rc.collectResource(wellTarget, -1);
+                } else {
+                    Direction dir = pathing.findPath(wellTarget);
+                    tryMoveOrWander(dir);
                 }
-            }
-            
-            if (rc.canCollectResource(well_one.getMapLocation(), -1)) {
-                rc.collectResource(well_one.getMapLocation(), -1);
+
             } else {
-                Direction dir = pathing.findPath(well_one.getMapLocation());
-                tryMoveOrWander(dir);
+                wander();
             }
             
         }  */
