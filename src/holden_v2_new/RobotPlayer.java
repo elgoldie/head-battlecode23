@@ -1,7 +1,7 @@
-package head_v2;
+package holden_v2_new;
 
 import battlecode.common.*;
-import head_v2.bots.*;
+import holden_v2_new.bots.*;
 
 public strictfp class RobotPlayer {
     
@@ -22,7 +22,6 @@ public strictfp class RobotPlayer {
         while (true) {
             try {
                 ai.run();
-                ai.postRun();
             } catch (GameActionException e) {
                 System.out.println(rc.getType() + " Exception");
                 e.printStackTrace();
