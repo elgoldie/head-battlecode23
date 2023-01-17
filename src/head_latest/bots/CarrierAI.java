@@ -5,20 +5,22 @@ import battlecode.common.*;
 public class CarrierAI extends RobotAI {
 
     private enum CarrierState {
-        SCOUT,
-        GO_TO_WELL,
-        RETURN_HOME,
-        DELIVER_ANCHOR
+        SCOUT, // scouting for enemy HQs
+        GO_TO_WELL, // on its way to collect resources
+        RETURN_HOME, // on its way back to HQ
+        DELIVER_ANCHOR // on its way toan island
     }
     
     public CarrierState state;
 
+    // the well we are going to
     public MapLocation targetWell;
     public ResourceType targetResource;
 
     public CarrierAI(RobotController rc, int id) throws GameActionException {
         super(rc, id);
         state = CarrierState.GO_TO_WELL;
+        // TODO: maybe tweak the odds
         if (rng.nextBoolean())
             targetResource = ResourceType.ADAMANTIUM;
         else
@@ -32,6 +34,11 @@ public class CarrierAI extends RobotAI {
         }
     }
 
+    /**
+     * Returns the total weight of the inventory.
+     * @return Weight of the inventory in kg.
+     * @throws GameActionException
+     */
     public int getInventoryWeight() throws GameActionException {
         int weight = 0;
         for (ResourceType type : ResourceType.values()) {
@@ -40,6 +47,12 @@ public class CarrierAI extends RobotAI {
         return weight;
     }
 
+    /**
+     * Returns the closest well to the robot.
+     * @param type The resource type to look for. If null, looks for any well.
+     * @return The closest well to the robot.
+     * @throws GameActionException
+     */
     public MapLocation closestWell(ResourceType type) throws GameActionException {
         WellInfo[] wells;
         if (type == null) wells = rc.senseNearbyWells();
@@ -62,10 +75,19 @@ public class CarrierAI extends RobotAI {
         return well_one.getMapLocation();
     }
 
+    /**
+     * Returns the closest well to the robot.
+     * @return The closest well to the robot.
+     * @throws GameActionException
+     */
     public MapLocation closestWell() throws GameActionException {
         return closestWell(null);
     }
 
+    /**
+     * Behavior for the carrier when it is verifying symmetry.
+     * @throws GameActionException
+     */
     public void behaviorScout() throws GameActionException {
         
         MapLocation hqToTarget = null;
@@ -96,6 +118,10 @@ public class CarrierAI extends RobotAI {
         }
     }
 
+    /**
+     * Behavior for the carrier when it is going to a well to mine (or finding a well).
+     * @throws GameActionException
+     */
     public void behaviorGoToWell() throws GameActionException {
 
         if (targetWell == null)
@@ -120,6 +146,10 @@ public class CarrierAI extends RobotAI {
         }
     }
 
+    /**
+     * Behavior for the carrier when it is returning to HQ.
+     * @throws GameActionException
+     */
     public void behaviorReturnHome() throws GameActionException {
 
         MapLocation hqLocation = closestHeadquarters();
@@ -156,6 +186,10 @@ public class CarrierAI extends RobotAI {
         }
     }
 
+    /**
+     * Behavior for the carrier when it is delivering an anchor to an island.
+     * @throws GameActionException
+     */
     public void behaviorDeliverAnchor() throws GameActionException {
 
         MapLocation destination = closestIsland(Team.NEUTRAL);

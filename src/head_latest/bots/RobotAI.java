@@ -49,25 +49,23 @@ public abstract class RobotAI {
 
     public int aliveTurns;
 
-    public MapLocation spawnLocation;
-
     public MapLocation destination;
 
+    /**
+     * Makes a step towards the destination using the pathfinding object.
+     * @param loc The new destination
+     * @throws GameActionException
+     */
     public void stepTowardsDestination(MapLocation loc) throws GameActionException {
+        // detect if the destination has changed
         if (loc != destination) {
             destination = loc;
             pathing.initPathfinding(destination);
         }
 
+        // make a step
         Direction dir = pathing.findPath();
         tryMove(dir);
-        // Direction direction = rc.getLocation().directionTo(loc);
-        // if (direction == Direction.CENTER) return;
-
-        // for (int i = 0; i < 8; i++) {
-        //     if (rc.canMove(direction)) tryMove(direction);
-        //     direction = direction.rotateLeft();
-        // }
     }
 
     public RobotAI(RobotController rc, int id) throws GameActionException {
@@ -81,36 +79,53 @@ public abstract class RobotAI {
         this.pathing = new WaypointPathfinding(rc);
         
         this.aliveTurns = 0;
-        this.spawnLocation = rc.getLocation();
 
         this.myTeam = rc.getTeam();
         this.enemyTeam = myTeam.opponent();
     }
     
+    /**
+     * Run every turn.
+     * @throws GameActionException
+     */
     public void run() throws GameActionException {
         aliveTurns += 1;
         
+        // headquarters don't need to scan, since they don't move
         if (rc.getType() != RobotType.HEADQUARTERS) {
             scanForIslands();
             scanForSymmetryConflicts();
-        }
-
-        rc.setIndicatorString(comm.read(61) + " " + comm.read(62) + " " + comm.read(63));
         
-        if (rc.canWriteSharedArray(0, 0) && comm.queueActive)
-            comm.queueFlush();
+            // flush the queue
+            if (rc.canWriteSharedArray(0, 0) && comm.queueActive)
+                comm.queueFlush();
+        }
     }
 
+    /**
+     * Wanders in a random direction, prioritizing diagonals.
+     * @throws GameActionException
+     */
     public void wander() throws GameActionException {
         if (!tryMove(diagonalDirections[rng.nextInt(4)]))
             tryMove(orthogonalDirections[rng.nextInt(4)]);
     }
 
+    /**
+     * Wanders in a random direction, prioritizing orthogonals.
+     * @throws GameActionException
+     */
     public void wanderOrthogonal() throws GameActionException {
         if (!tryMove(orthogonalDirections[rng.nextInt(4)]))
             tryMove(diagonalDirections[rng.nextInt(4)]);
     }
 
+    /**
+     * Tries to move in a given direction and returns the result.
+     * @param dir The direction to move in
+     * @return Whether the move succeeded
+     * @throws GameActionException
+     */
     public boolean tryMove(Direction dir) throws GameActionException {
         if (rc.canMove(dir)) {
             rc.move(dir);
@@ -120,6 +135,12 @@ public abstract class RobotAI {
         }
     }
 
+    /**
+     * Tries to move in a given direction, and if it fails, wanders.
+     * @param dir The direction to move in
+     * @return Whether the move succeeded
+     * @throws GameActionException
+     */
     public boolean tryMoveOrWander(Direction dir) throws GameActionException {
         if (rc.canMove(dir)) {
             rc.move(dir);
@@ -130,6 +151,11 @@ public abstract class RobotAI {
         }
     }
 
+    /**
+     * Returns the closest friendly headquarters.
+     * @return The headquarters' coordinates
+     * @throws GameActionException
+     */
     public MapLocation closestHeadquarters() throws GameActionException {
         MapLocation loc = null;
         int dist = Integer.MAX_VALUE;
@@ -145,10 +171,17 @@ public abstract class RobotAI {
         return loc;
     }
 
+    /**
+     * Returns the closest island controlled by a given team (according to the comm system).
+     * @param team The team to check for
+     * @return The closest island controlled by the given team
+     * @throws GameActionException
+     */
     public MapLocation closestIsland(Team team) throws GameActionException {
         MapLocation closest = null;
         int closestDist = Integer.MAX_VALUE;
-        for (int index = 9; index < rc.getIslandCount() + 9; index++) {
+        // start at 4 because the first 4 locations are reserved for HQs
+        for (int index = 4; index < rc.getIslandCount() + 4; index++) {
             if (comm.readLocationFlags(index) == team.ordinal()) {
                 MapLocation loc = comm.readLocation(index);
                 if (loc == null) continue;
@@ -162,34 +195,38 @@ public abstract class RobotAI {
         return closest;
     }
 
+    /**
+     * Scans for islands and updates the comm system accordingly.
+     * @throws GameActionException
+     */
     public void scanForIslands() throws GameActionException {        
         for (int index : rc.senseNearbyIslands()) {
             // if island is undiscovered
             int newFlag = rc.senseTeamOccupyingIsland(index).ordinal();
             
-            if (comm.hasNoLocation(index + 8)) {
+            if (!comm.hasLocation(index + 3)) {
                 MapLocation islandLocation = rc.senseNearbyIslandLocations(index)[0];
-                comm.writeLocation(index + 8, islandLocation, newFlag);
-            } else if (comm.readLocationFlags(index + 8) != newFlag) {
-                comm.writeLocationFlags(index + 8, newFlag);
+                comm.writeLocation(index + 3, islandLocation, newFlag);
+            } else if (comm.readLocationFlags(index + 3) != newFlag) {
+                comm.writeLocationFlags(index + 3, newFlag);
             }
         }
     }
 
-    public int amountOfTypeNearby(int radiusSquared, Team team, RobotType type) throws GameActionException {
-        int count = 0;
-        for (RobotInfo robot : rc.senseNearbyRobots(radiusSquared, team)) {
-            if (robot.getType() == type) {
-                count += 1;
-            }
-        }
-        return count;
-    }
-
+    /**
+     * Marks a symmetry as invalid in the comm system.
+     * @param symmetry The symmetry to mark as invalid
+     * @throws GameActionException
+     */
     public void eliminateSymmetry(Symmetry symmetry) throws GameActionException {
         comm.write(63 - symmetry.ordinal(), 1);
     }
 
+    /**
+     * Returns an array of all possible symmetries, according to the comm system.
+     * @return An array of all possible symmetries
+     * @throws GameActionException
+     */
     public Symmetry[] getValidSymmetries() throws GameActionException {
         Symmetry[] symmetries = new Symmetry[3];
         int count = 0;
@@ -204,6 +241,12 @@ public abstract class RobotAI {
         return result;
     }
 
+    /**
+     * Returns an array of all possible enemy HQ locations, given the current
+     * knowledge of the map's symmetries.
+     * @return An array of all possible enemy HQ locations
+     * @throws GameActionException
+     */
     public MapLocation[] getPossibleEnemyHQLocations() throws GameActionException {
         Symmetry[] symmetries = getValidSymmetries();
         MapLocation[] locations = new MapLocation[4 * symmetries.length];
@@ -221,6 +264,11 @@ public abstract class RobotAI {
         return result;
     }
 
+    /**
+     * Scans for symmetry conflicts based on nearby headquarters
+     * and eliminates them.
+     * @throws GameActionException
+     */
     public void scanForSymmetryConflicts() throws GameActionException {
         ArrayList<MapLocation> actualEnemyHQLocations = new ArrayList<>();
         for (RobotInfo robot : rc.senseNearbyRobots(1000, enemyTeam)) {

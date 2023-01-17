@@ -8,6 +8,11 @@ public class LauncherAI extends RobotAI {
         super(rc, id);
     }
 
+    /**
+     * Returns the closest enemy HQ to the robot (according to the comm system).
+     * @return The closest enemy HQ to the robot.
+     * @throws GameActionException
+     */
     public MapLocation closestEnemyHeadquarters() throws GameActionException {
         MapLocation loc = null;
         int dist = Integer.MAX_VALUE;
@@ -21,6 +26,11 @@ public class LauncherAI extends RobotAI {
         return loc;
     }
 
+    /**
+     * Returns a value heuristic that determines attack priority.
+     * @param robot The robot to evaluate
+     * @return The value of the robot
+     */
     public int enemyValue(RobotInfo robot) {
         if (robot.getType() == RobotType.HEADQUARTERS) return Integer.MIN_VALUE;
         return -robot.health;
@@ -78,22 +88,6 @@ public class LauncherAI extends RobotAI {
                 stepTowardsDestination(enemyHQ);
                 return;
             }
-
-            // if (offense) {
-            //     MapLocation enemyIsland = closestIsland(enemyTeam);
-            //     if (enemyIsland == null) {
-            //         wander();
-            //     } else {
-            //         tryMoveOrWander(pathing.findPath(enemyIsland));
-            //     }
-            // } else {
-            //     MapLocation island = closestIsland(myTeam);
-            //     if (island == null) {
-            //         wander();
-            //     } else {
-            //         tryMoveOrWander(pathing.findPath(island));
-            //     }
-            // }
         }
     }
 }
