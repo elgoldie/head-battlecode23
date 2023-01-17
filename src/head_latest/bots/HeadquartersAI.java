@@ -1,4 +1,4 @@
-package holden_v3_old.bots;
+package head_latest.bots;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,7 +41,10 @@ public class HeadquartersAI extends RobotAI {
         // early-game behavior, saving headquarter positions
         if (rc.getRoundNum() == 1) {
             myIndex = comm.appendLocation(0, rc.getLocation());
+            
         } else {
+
+            // handle distress signals
             int amountEnemies = rc.senseNearbyRobots(20, enemyTeam).length;
             if (amountEnemies >= 3) {
                 // distress signal
@@ -61,7 +64,7 @@ public class HeadquartersAI extends RobotAI {
         if (rc.getRobotCount() > 10 && anchorCraftCooldown <= 0 && rc.getNumAnchors(Anchor.STANDARD) == 0) {
             if (rc.canBuildAnchor(Anchor.STANDARD)) {
                 rc.buildAnchor(Anchor.STANDARD);
-                // System.out.println("I just built an anchor!");
+                System.out.println("I just built an anchor!");
                 anchorCraftCooldown = 50;
             }
         }
@@ -82,5 +85,7 @@ public class HeadquartersAI extends RobotAI {
         if (rc.canBuildRobot(typeToSpawn, newLoc)) {
             rc.buildRobot(typeToSpawn, newLoc);
         }
+
+        // if (rc.getRoundNum() >= 200) rc.resign();
     }
 }

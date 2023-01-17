@@ -1,4 +1,4 @@
-package head_v3.path;
+package head_latest.path;
 
 import battlecode.common.*;
 

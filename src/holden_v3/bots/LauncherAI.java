@@ -1,4 +1,4 @@
-package holden_v3_old.bots;
+package holden_v3.bots;
 
 import battlecode.common.*;
 

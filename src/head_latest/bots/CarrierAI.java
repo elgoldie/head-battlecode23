@@ -1,11 +1,11 @@
-package holden_v3_old.bots;
+package head_latest.bots;
 
 import battlecode.common.*;
 
 public class CarrierAI extends RobotAI {
 
     private enum CarrierState {
-        EXPLORE,
+        SCOUT,
         GO_TO_WELL,
         RETURN_HOME,
         DELIVER_ANCHOR
@@ -66,8 +66,34 @@ public class CarrierAI extends RobotAI {
         return closestWell(null);
     }
 
-    public void behaviorExplore() throws GameActionException {
-        wander();
+    public void behaviorScout() throws GameActionException {
+        
+        MapLocation hqToTarget = null;
+        int bestDistance = Integer.MAX_VALUE;
+        for (MapLocation hqLoc : getPossibleEnemyHQLocations()) {
+            int distance = rc.getLocation().distanceSquaredTo(hqLoc);
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                hqToTarget = hqLoc;
+            }
+        }
+
+        if (hqToTarget == null) {
+            // this should never happen
+            state = CarrierState.RETURN_HOME;
+
+        } else {
+            if (rc.canSenseLocation(hqToTarget)) {
+
+                state = CarrierState.RETURN_HOME;
+
+            } else {
+
+                stepTowardsDestination(hqToTarget);
+                if (rc.isMovementReady())
+                    stepTowardsDestination(hqToTarget);
+            }
+        }
     }
 
     public void behaviorGoToWell() throws GameActionException {
@@ -85,9 +111,9 @@ public class CarrierAI extends RobotAI {
             if (rc.canCollectResource(targetWell, -1)) {
                 rc.collectResource(targetWell, -1);
             } else {
-                tryMove(pathing.findPath(targetWell));
+                stepTowardsDestination(targetWell);
                 if (rc.isMovementReady())
-                    tryMove(pathing.findPath(targetWell));
+                    stepTowardsDestination(targetWell);
             }
         } else {
             wander();
@@ -101,7 +127,7 @@ public class CarrierAI extends RobotAI {
         if (rc.getLocation().isAdjacentTo(hqLocation)) {
 
             if (getInventoryWeight() == 0) {
-
+                
                 if (rc.canTakeAnchor(hqLocation, Anchor.STANDARD)) {
                     rc.takeAnchor(hqLocation, Anchor.STANDARD);
                     state = CarrierState.DELIVER_ANCHOR;
@@ -115,10 +141,18 @@ public class CarrierAI extends RobotAI {
                 int amount = rc.getResourceAmount(targetResource);
                 rc.transferResource(hqLocation, targetResource, amount);
             }
+
+            int validSymmetryCount = getValidSymmetries().length;
+            if ((validSymmetryCount == 3 && rng.nextInt(5) == 0)
+                || (validSymmetryCount == 2 && rng.nextInt(10) == 0)) {
+                state = CarrierState.SCOUT;
+                System.out.println(rc.getLocation());
+            }
+
         } else {
-            tryMove(pathing.findPath(hqLocation));
+            stepTowardsDestination(hqLocation);
             if (rc.isMovementReady())
-                tryMove(pathing.findPath(hqLocation));
+                stepTowardsDestination(hqLocation);
         }
     }
 
@@ -128,11 +162,21 @@ public class CarrierAI extends RobotAI {
         if (destination == null) {
             wander();
         } else {
+
+            if (rc.getLocation().isAdjacentTo(destination)) {
+                if (tryMove(rc.getLocation().directionTo(destination))) {
+                    if (rc.canPlaceAnchor()) {
+                        rc.placeAnchor();
+                        state = CarrierState.RETURN_HOME;
+                    }
+                }
+            }
+
             if (!rc.getLocation().equals(destination)) {
                 
-                tryMove(pathing.findPath(destination));
+                stepTowardsDestination(destination);
                 if (rc.isMovementReady())
-                    tryMove(pathing.findPath(destination));
+                    stepTowardsDestination(destination);
 
             } else if (rc.canPlaceAnchor()) {
                 rc.placeAnchor();
@@ -147,8 +191,8 @@ public class CarrierAI extends RobotAI {
         rc.setIndicatorString(state.toString());
 
         switch (state) {
-            case EXPLORE:
-                behaviorExplore();
+            case SCOUT:
+                behaviorScout();
                 break;
             case GO_TO_WELL:
                 behaviorGoToWell();

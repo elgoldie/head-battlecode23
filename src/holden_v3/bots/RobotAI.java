@@ -1,11 +1,11 @@
-package holden_v3_old.bots;
+package holden_v3.bots;
 
 import java.util.Random;
 
 import battlecode.common.*;
-import holden_v3_old.comm.Communication;
-import holden_v3_old.path.NaivePathfinding;
-import holden_v3_old.path.Pathfinding;
+import holden_v3.comm.Communication;
+import holden_v3.path.NaivePathfinding;
+import holden_v3.path.Pathfinding;
 
 public abstract class RobotAI {
 

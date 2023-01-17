@@ -1,4 +1,4 @@
-package holden_v3_old.path;
+package holden_v3.path;
 
 import battlecode.common.*;
 

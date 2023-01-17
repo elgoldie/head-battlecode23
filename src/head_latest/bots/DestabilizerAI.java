@@ -1,10 +1,10 @@
-package holden_v3_old.bots;
+package head_latest.bots;
 
 import battlecode.common.*;
 
-public class BoosterAI extends RobotAI {
+public class DestabilizerAI extends RobotAI {
     
-    public BoosterAI(RobotController rc, int id) throws GameActionException {
+    public DestabilizerAI(RobotController rc, int id) throws GameActionException {
         super(rc, id);
     }
 

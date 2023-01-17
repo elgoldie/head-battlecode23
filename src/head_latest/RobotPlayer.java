@@ -1,7 +1,7 @@
-package holden_v3_old;
+package head_latest;
 
 import battlecode.common.*;
-import holden_v3_old.bots.*;
+import head_latest.bots.*;
 
 public strictfp class RobotPlayer {
     
