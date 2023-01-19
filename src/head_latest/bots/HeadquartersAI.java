@@ -38,9 +38,13 @@ public class HeadquartersAI extends RobotAI {
         super.run();
         anchorCraftCooldown -= 1;
 
+        // if (myIndex == 0 && rc.getRoundNum() % 10 == 0) {
+        //     System.out.println(comm.dispArray());
+        // }
+
         // early-game behavior, saving headquarter positions
         if (rc.getRoundNum() == 1) {
-            myIndex = comm.appendLocation(0, rc.getLocation());
+            myIndex = comm.appendLocation(comm.HQ_OFFSET, rc.getLocation());
             
         } else {
 

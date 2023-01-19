@@ -39,7 +39,7 @@ public class LauncherAI extends RobotAI {
     // public boolean checkForDistress() throws GameActionException {
     //     MapLocation loc = null;
     //     int dist = Integer.MAX_VALUE;
-    //     for (int i = 0; i < 4; i++) {
+    //     for (int i = comm.HQ_OFFSET; i < comm.HQ_OFFSET + 4; i++) {
     //         MapLocation hqLoc = comm.readLocation(i);
     //         if (hqLoc == null) break;
     //         if (comm.readLocationFlags(i) == 0) continue;

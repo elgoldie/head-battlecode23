@@ -8,6 +8,10 @@ public class Communication {
 
     public RobotController rc;
 
+    public final int HQ_OFFSET = 0;
+    public final int ISLAND_OFFSET = 4;
+    public int WELL_OFFSET;
+
     /**
      * The queue is used to store values that cannot be written to the shared array
      * immediately. The queue is flushed when the robot comes within range again.
@@ -21,6 +25,7 @@ public class Communication {
      */
     public Communication(RobotController rc) {
         this.rc = rc;
+        this.WELL_OFFSET = this.ISLAND_OFFSET + rc.getIslandCount();
 
         // initialize queue
         this.queue = new int[64];
@@ -32,12 +37,12 @@ public class Communication {
      * Displays the contents of the shared array to the indicator string.
      * @throws GameActionException
      */
-    public void dispArray() throws GameActionException {
+    public String dispArray() throws GameActionException {
         int[] array = new int[64];
         for (int i = 0; i < 64; i++) {
             array[i] = rc.readSharedArray(i);
         }
-        rc.setIndicatorString(Arrays.toString(array));
+        return Arrays.toString(array);
     }
 
     /**
@@ -203,7 +208,7 @@ public class Communication {
      * @throws GameActionException
      */
     public boolean hasLocation(int index) throws GameActionException {
-        return (read(index) & 0xFFF) == 0;
+        return (read(index) & 0xFFF) != 0;
     }
 
     /**

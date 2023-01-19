@@ -5,6 +5,7 @@ import java.util.Random;
 
 import battlecode.common.*;
 import head_latest.comm.Communication;
+import head_latest.path.NaivePathfinding;
 import head_latest.path.Pathfinding;
 import head_latest.path.Symmetry;
 import head_latest.path.WaypointPathfinding;
@@ -76,7 +77,8 @@ public abstract class RobotAI {
         this.seed = rng.nextInt();
 
         this.comm = new Communication(rc);
-        this.pathing = new WaypointPathfinding(rc);
+        // this.pathing = new WaypointPathfinding(rc);
+        this.pathing = new NaivePathfinding(rc);
         
         this.aliveTurns = 0;
 
@@ -159,7 +161,7 @@ public abstract class RobotAI {
     public MapLocation closestHeadquarters() throws GameActionException {
         MapLocation loc = null;
         int dist = Integer.MAX_VALUE;
-        for (int i = 0; i < 4; i++) {
+        for (int i = comm.HQ_OFFSET; i < comm.HQ_OFFSET + 4; i++) {
             MapLocation hqLoc = comm.readLocation(i);
             if (hqLoc == null) break;
             int newDist = hqLoc.distanceSquaredTo(rc.getLocation());
@@ -181,7 +183,7 @@ public abstract class RobotAI {
         MapLocation closest = null;
         int closestDist = Integer.MAX_VALUE;
         // start at 4 because the first 4 locations are reserved for HQs
-        for (int index = 4; index < rc.getIslandCount() + 4; index++) {
+        for (int index = comm.ISLAND_OFFSET; index < comm.ISLAND_OFFSET + rc.getIslandCount(); index++) {
             if (comm.readLocationFlags(index) == team.ordinal()) {
                 MapLocation loc = comm.readLocation(index);
                 if (loc == null) continue;
@@ -204,11 +206,11 @@ public abstract class RobotAI {
             // if island is undiscovered
             int newFlag = rc.senseTeamOccupyingIsland(index).ordinal();
             
-            if (!comm.hasLocation(index + 3)) {
+            if (!comm.hasLocation(index - 1 + comm.ISLAND_OFFSET)) {
                 MapLocation islandLocation = rc.senseNearbyIslandLocations(index)[0];
-                comm.writeLocation(index + 3, islandLocation, newFlag);
-            } else if (comm.readLocationFlags(index + 3) != newFlag) {
-                comm.writeLocationFlags(index + 3, newFlag);
+                comm.writeLocation(index - 1 + comm.ISLAND_OFFSET, islandLocation, newFlag);
+            } else if (comm.readLocationFlags(index - 1 + comm.ISLAND_OFFSET) != newFlag) {
+                comm.writeLocationFlags(index - 1 + comm.ISLAND_OFFSET, newFlag);
             }
         }
     }
@@ -251,7 +253,7 @@ public abstract class RobotAI {
         Symmetry[] symmetries = getValidSymmetries();
         MapLocation[] locations = new MapLocation[4 * symmetries.length];
         int count = 0;
-        for (int hqIndex = 0; hqIndex < 4; hqIndex++) {
+        for (int hqIndex = comm.HQ_OFFSET; hqIndex < comm.HQ_OFFSET + 4; hqIndex++) {
             MapLocation hqLoc = comm.readLocation(hqIndex);
             if (hqLoc == null) break;
             for (int i = 0; i < symmetries.length; i++) {
@@ -271,7 +273,7 @@ public abstract class RobotAI {
      */
     public void scanForSymmetryConflicts() throws GameActionException {
         ArrayList<MapLocation> actualEnemyHQLocations = new ArrayList<>();
-        for (RobotInfo robot : rc.senseNearbyRobots(1000, enemyTeam)) {
+        for (RobotInfo robot : rc.senseNearbyRobots(-1, enemyTeam)) {
             if (robot.getType() == RobotType.HEADQUARTERS) {
                 actualEnemyHQLocations.add(robot.getLocation());
             }
