@@ -135,10 +135,13 @@ public class CarrierAI extends RobotAI {
         }
         
         if (targetWell != null) {
-            
-            if (rc.canCollectResource(targetWell, -1)) {
+            boolean hasMined = false;
+            while (rc.canCollectResource(targetWell, -1)) {
+                hasMined = true;
                 rc.collectResource(targetWell, -1);
-            } else {
+            }
+
+            if (!hasMined) {
                 stepTowardsDestination(targetWell);
                 if (rc.isMovementReady())
                     stepTowardsDestination(targetWell);
