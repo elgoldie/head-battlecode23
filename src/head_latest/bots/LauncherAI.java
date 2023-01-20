@@ -26,15 +26,7 @@ public class LauncherAI extends RobotAI {
         return loc;
     }
 
-    /**
-     * Returns a value heuristic that determines attack priority.
-     * @param robot The robot to evaluate
-     * @return The value of the robot
-     */
-    public int enemyValue(RobotInfo robot) {
-        if (robot.getType() == RobotType.HEADQUARTERS) return Integer.MIN_VALUE;
-        return -robot.health;
-    }
+
 
     // public boolean checkForDistress() throws GameActionException {
     //     MapLocation loc = null;

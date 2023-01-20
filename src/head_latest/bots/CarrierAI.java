@@ -10,6 +10,8 @@ public class CarrierAI extends RobotAI {
         RETURN_HOME, // on its way back to HQ
         DELIVER_ANCHOR // on its way toan island
     }
+
+    public final int SUICIDE_THRESHOLD = 30;
     
     public CarrierState state;
 
@@ -223,6 +225,25 @@ public class CarrierAI extends RobotAI {
     public void run() throws GameActionException {
         super.run();
         rc.setIndicatorString(state.toString());
+
+        if (rc.getHealth() <= SUICIDE_THRESHOLD) {
+            int radius = rc.getType().actionRadiusSquared;
+
+            int maxValue = Integer.MIN_VALUE;
+            RobotInfo target = null;
+            for (RobotInfo robot : rc.senseNearbyRobots(radius, enemyTeam)) {
+                int value = enemyValue(robot);
+                if (value > maxValue) {
+                    maxValue = value;
+                    target = robot;
+                }
+            }
+            if (target != null) {
+                if (rc.canAttack(target.location)) {      
+                    rc.attack(target.location);
+                }
+            }
+        }
 
         switch (state) {
             case SCOUT:

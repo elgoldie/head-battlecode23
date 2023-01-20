@@ -68,6 +68,17 @@ public abstract class RobotAI {
         tryMove(dir);
     }
 
+    /**
+     * Returns a value heuristic that determines attack priority.
+     * @param robot The robot to evaluate
+     * @return The value of the robot
+     */
+    public int enemyValue(RobotInfo robot) {
+        if (robot.getType() == RobotType.HEADQUARTERS) return Integer.MIN_VALUE;
+        return -robot.health;
+    }
+
+
     public RobotAI(RobotController rc, int id) throws GameActionException {
         this.rc = rc;
         this.id = id;
