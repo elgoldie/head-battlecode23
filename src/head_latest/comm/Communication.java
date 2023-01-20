@@ -8,6 +8,13 @@ public class Communication {
 
     public RobotController rc;
 
+    /*
+     * CURRENT SHARED ARRAY ALLOCATION
+     * 0-3: Friendly HQ locations
+     * 4-33: Island locations, dynamic depending on island count
+     * 61-63: Symmetry detection
+     */
+
     public final int HQ_OFFSET = 0;
     public final int ISLAND_OFFSET = 4;
     public int WELL_OFFSET;
