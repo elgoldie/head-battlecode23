@@ -21,17 +21,15 @@ public class HeadquartersAI extends RobotAI {
     public int myIndex;
     public RobotType typeToSpawn;
 
+    public ArrayList<MapLocation> spawningLocations;
+
     public HeadquartersAI(RobotController rc, int id) throws GameActionException {
         super(rc, id);
         state = SpawningState.OPENING;
         anchorCraftCooldown = 0;
         myIndex = -1;
-    }
 
-    public boolean canAffordToSpawnType(RobotType type) throws GameActionException {
-        return rc.getResourceAmount(ResourceType.ADAMANTIUM) >= type.buildCostAdamantium
-                && rc.getResourceAmount(ResourceType.MANA) >= type.buildCostMana
-                && rc.getResourceAmount(ResourceType.ELIXIR) >= type.buildCostElixir;
+        spawningLocations = new ArrayList<>();
     }
 
     public ArrayList<MapLocation> getFreeSpawningLocations() throws GameActionException {
@@ -46,39 +44,41 @@ public class HeadquartersAI extends RobotAI {
         return freeLocations;
     }
 
+    /**
+     * Tries to build a robot, and removes the location from the spawning locations
+     * @param type the type of robot to build
+     * @param loc the location to build the robot
+     * @return true if the robot was built, false otherwise
+     * @throws GameActionException
+     */
+    public boolean tryToBuildRobot(RobotType type, MapLocation loc) throws GameActionException {
+        if (rc.canBuildRobot(type, loc)) {
+            rc.buildRobot(type, loc);
+            spawningLocations.remove(loc);
+            return true;
+        }
+        return false;
+    }
+
     // SPAWNING BEHAVIORS
 
     /**
      * Spawning behavior on turns 1 and 2. Turn 1 spawns 4 carriers, 1 launcher.
-     * Turn 2 spawns 2 launcher
-     * 
+     * Turn 2 spawns 2 launchers.
      * @throws GameActionException
      */
     public void behaviorOpeningSpawning() throws GameActionException {
-        ArrayList<MapLocation> spawningLocations = getFreeSpawningLocations();
-        if (spawningLocations.size() == 0) {
-            return;
-        }
         if (rc.getRoundNum() == 1) {
             for (int i = 0; i < 4; i++) {
                 MapLocation newLoc = spawningLocations.get(rng.nextInt(spawningLocations.size()));
-                if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
-                    rc.buildRobot(RobotType.CARRIER, newLoc);
-                }
-                spawningLocations = getFreeSpawningLocations();
+                tryToBuildRobot(RobotType.CARRIER, newLoc);
             }
-            spawningLocations = getFreeSpawningLocations();
             MapLocation newLoc = spawningLocations.get(rng.nextInt(spawningLocations.size()));
-            if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
-                rc.buildRobot(RobotType.LAUNCHER, newLoc);
-            }
+            tryToBuildRobot(RobotType.LAUNCHER, newLoc);
         } else {
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < 2; i++) {
                 MapLocation newLoc = spawningLocations.get(rng.nextInt(spawningLocations.size()));
-                if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
-                    rc.buildRobot(RobotType.LAUNCHER, newLoc);
-                }
-                spawningLocations = getFreeSpawningLocations();
+                tryToBuildRobot(RobotType.LAUNCHER, newLoc);
             }
         }
     }
@@ -86,16 +86,11 @@ public class HeadquartersAI extends RobotAI {
     /**
      * Spawning behavior on for early game. Spawns carriers and launcher with equal
      * frequency (attempts to spawn up to 5 robots per turn)
-     * 
      * @throws GameActionException
      */
     public void behaviorEarlyGameSpawning() throws GameActionException {
-        ArrayList<MapLocation> spawningLocations = getFreeSpawningLocations();
-        if (spawningLocations.size() == 0) {
-            return;
-        }
-        MapLocation newLoc = spawningLocations.get(rng.nextInt(spawningLocations.size()));
-
+        
+        MapLocation newLoc;
         for (int i = 0; i < 5; i++) {
             newLoc = spawningLocations.get(rng.nextInt(spawningLocations.size()));
             if (rng.nextInt(2) == 0) {
@@ -103,25 +98,18 @@ public class HeadquartersAI extends RobotAI {
             } else {
                 typeToSpawn = RobotType.LAUNCHER;
             }
-            if (rc.canBuildRobot(typeToSpawn, newLoc)) {
-                rc.buildRobot(typeToSpawn, newLoc);
-            }
+            tryToBuildRobot(typeToSpawn, newLoc);
         }
     }
 
     /**
      * Spawning behavior on for mid game. Spawns carriers and launcher with in a 1:3
      * ratio (attempts to spawn up to 5 robots per turn)
-     * 
      * @throws GameActionException
      */
     public void behaviorMidGameSpawning() throws GameActionException {
-        ArrayList<MapLocation> spawningLocations = getFreeSpawningLocations();
-        if (spawningLocations.size() == 0) {
-            return;
-        }
-        MapLocation newLoc = spawningLocations.get(rng.nextInt(spawningLocations.size()));
 
+        MapLocation newLoc;
         for (int i = 0; i < 5; i++) {
             newLoc = spawningLocations.get(rng.nextInt(spawningLocations.size()));
             if (rng.nextInt(5) == 0) {
@@ -130,17 +118,16 @@ public class HeadquartersAI extends RobotAI {
                 } else {
                     typeToSpawn = RobotType.LAUNCHER;
                 }
-                if (rc.canBuildRobot(typeToSpawn, newLoc)) {
-                    rc.buildRobot(typeToSpawn, newLoc);
-                }
+                tryToBuildRobot(typeToSpawn, newLoc);
             }
-
         }
     }
 
     @Override
     public void run() throws GameActionException {
         super.run();
+        spawningLocations = getFreeSpawningLocations();
+
         rc.setIndicatorString(state.toString());
         anchorCraftCooldown -= 1;
 
@@ -175,51 +162,19 @@ public class HeadquartersAI extends RobotAI {
             state = SpawningState.EARLYGAME;
         }
 
-        switch (state) {
-            case OPENING:
-                behaviorOpeningSpawning();
-                break;
-            case EARLYGAME:
-                behaviorEarlyGameSpawning();
-                break;
-            case MIDGAME:
-                behaviorMidGameSpawning();
-                break;
+        if (!spawningLocations.isEmpty()) {
+            switch (state) {
+                case OPENING:
+                    behaviorOpeningSpawning();
+                    break;
+                case EARLYGAME:
+                    behaviorEarlyGameSpawning();
+                    break;
+                case MIDGAME:
+                    behaviorMidGameSpawning();
+                    break;
+            }
         }
-
-        // RobotType typeToSpawn = RobotType.CARRIER;
-        // if (rc.getRoundNum() == 1) {
-        // for (int i =0; i < 4; i++) {
-        // newLoc = spawningLocations.get(rng.nextInt(spawningLocations.size()));
-        // if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
-        // rc.buildRobot(RobotType.CARRIER, newLoc);
-        // }
-        // spawningLocations = getFreeSpawningLocations();
-        // }
-        // spawningLocations = getFreeSpawningLocations();
-        // newLoc = spawningLocations.get(rng.nextInt(spawningLocations.size()));
-        // if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
-        // rc.buildRobot(RobotType.LAUNCHER, newLoc);
-        // }
-        // } else if (rc.getRoundNum() == 2) {
-        // for (int i =0; i < 3; i++) {
-        // newLoc = spawningLocations.get(rng.nextInt(spawningLocations.size()));
-        // if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
-        // rc.buildRobot(RobotType.LAUNCHER, newLoc);
-        // }
-        // spawningLocations = getFreeSpawningLocations();
-        // }
-        // } else {
-        // if (rng.nextInt(4) == 0) {
-        // typeToSpawn = RobotType.CARRIER;
-        // } else {
-        // typeToSpawn = RobotType.LAUNCHER;
-        // }
-        // }
-
-        // if (rc.canBuildRobot(typeToSpawn, newLoc)) {
-        // rc.buildRobot(typeToSpawn, newLoc);
-        // }
 
         // if (rc.getRoundNum() >= 200) rc.resign();
     }
