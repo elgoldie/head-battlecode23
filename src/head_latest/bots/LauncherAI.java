@@ -51,6 +51,18 @@ public class LauncherAI extends RobotAI {
     // }
 
     @Override
+    public void stepTowardsDestination(MapLocation destination) throws GameActionException {
+        if (rng.nextInt(3) == 0) {
+            MapLocation averageNeighbor = averagePositionOfNearbyRobots(myTeam, RobotType.LAUNCHER);
+            if (rc.getLocation().distanceSquaredTo(averageNeighbor) > 2) {
+                destination = averageNeighbor;
+            }
+        }
+
+        super.stepTowardsDestination(destination);
+    }
+
+    @Override
     public void run() throws GameActionException {
         super.run();
 

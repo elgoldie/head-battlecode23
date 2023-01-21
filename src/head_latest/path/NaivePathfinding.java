@@ -24,7 +24,8 @@ public class NaivePathfinding implements Pathfinding {
 
         for (int i = 0; i < 8; i++) {
             if (rc.canMove(direction)) return direction;
-            direction = direction.rotateLeft();
+            if (rc.getID() % 2 == 0) direction = direction.rotateLeft();
+            else direction = direction.rotateRight();
         }
         return Direction.CENTER;
     }

@@ -212,7 +212,6 @@ public class HeadquartersAI extends RobotAI {
 
 
 
-
         // RobotType typeToSpawn = RobotType.CARRIER;
         // if (rc.getRoundNum() == 1) {
         //     for (int i =0; i < 4; i++) {

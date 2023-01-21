@@ -65,6 +65,11 @@ public abstract class RobotAI {
 
         // make a step
         Direction dir = pathing.findPath();
+        for (RobotInfo robot : rc.senseNearbyRobots(-1, enemyTeam)) {
+            if (robot.getType() == RobotType.HEADQUARTERS && rc.getLocation().add(dir).distanceSquaredTo(robot.getLocation()) <= 9) {
+                return;
+            }
+        }
         tryMove(dir);
     }
 
@@ -161,6 +166,32 @@ public abstract class RobotAI {
             wander();
             return false;
         }
+    }
+
+    /**
+     * Returns the average position of nearby robots of a given team and type.
+     * @param team The team of the robots
+     * @param type The type of the robots
+     * @return The average position
+     * @throws GameActionException
+     */
+    public MapLocation averagePositionOfNearbyRobots(Team team, RobotType type) throws GameActionException {
+        int x = 0;
+        int y = 0;
+        int count = 0;
+        for (RobotInfo robot : rc.senseNearbyRobots(-1, team)) {
+            if (type == null || robot.type == type) {
+                x += robot.location.x;
+                y += robot.location.y;
+                count += 1;
+            }
+        }
+        if (count == 0) return rc.getLocation();
+        return new MapLocation(x / count, y / count);
+    }
+
+    public MapLocation averagePositionOfNearbyRobots(Team team) throws GameActionException {
+        return averagePositionOfNearbyRobots(team, null);
     }
 
     /**
