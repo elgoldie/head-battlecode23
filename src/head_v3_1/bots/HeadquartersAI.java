@@ -1,4 +1,4 @@
-package head_latest.bots;
+package head_v3_1.bots;
 
 import java.util.ArrayList;
 import java.util.Arrays;

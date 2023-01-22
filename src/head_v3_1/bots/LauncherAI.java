@@ -1,7 +1,7 @@
-package head_latest.bots;
+package head_v3_1.bots;
 
 import battlecode.common.*;
-import head_latest.path.NaivePathfinding;
+import head_v3_1.path.NaivePathfinding;
 
 public class LauncherAI extends RobotAI {
     

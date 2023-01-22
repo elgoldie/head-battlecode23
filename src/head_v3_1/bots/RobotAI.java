@@ -1,13 +1,13 @@
-package head_latest.bots;
+package head_v3_1.bots;
 
 import java.util.ArrayList;
 import java.util.Random;
 
 import battlecode.common.*;
-import head_latest.comm.Communication;
-import head_latest.path.Pathfinding;
-import head_latest.path.Symmetry;
-import head_latest.path.WaypointPathfinding;
+import head_v3_1.comm.Communication;
+import head_v3_1.path.Pathfinding;
+import head_v3_1.path.Symmetry;
+import head_v3_1.path.WaypointPathfinding;
 
 public abstract class RobotAI {
 
