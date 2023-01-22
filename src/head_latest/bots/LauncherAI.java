@@ -26,8 +26,6 @@ public class LauncherAI extends RobotAI {
         return loc;
     }
 
-
-
     // public boolean checkForDistress() throws GameActionException {
     //     MapLocation loc = null;
     //     int dist = Integer.MAX_VALUE;
@@ -55,7 +53,8 @@ public class LauncherAI extends RobotAI {
         if (rng.nextInt(3) == 0) {
             MapLocation averageNeighbor = averagePositionOfNearbyRobots(myTeam, RobotType.LAUNCHER);
             if (rc.getLocation().distanceSquaredTo(averageNeighbor) > 2) {
-                destination = averageNeighbor;
+                tryMove(rc.getLocation().directionTo(averageNeighbor));
+                return;
             }
         }
 

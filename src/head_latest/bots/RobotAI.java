@@ -8,6 +8,7 @@ import head_latest.comm.Communication;
 import head_latest.path.NaivePathfinding;
 import head_latest.path.Pathfinding;
 import head_latest.path.Symmetry;
+import head_latest.path.WaypointPathfinding;
 
 public abstract class RobotAI {
 
@@ -92,8 +93,8 @@ public abstract class RobotAI {
         this.seed = rng.nextInt();
 
         this.comm = new Communication(rc);
-        // this.pathing = new WaypointPathfinding(rc);
-        this.pathing = new NaivePathfinding(rc);
+        this.pathing = new WaypointPathfinding(rc);
+        // this.pathing = new NaivePathfinding(rc);
         
         this.aliveTurns = 0;
 
