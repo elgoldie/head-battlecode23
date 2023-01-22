@@ -103,7 +103,7 @@ public class HeadquartersAI extends RobotAI {
     }
 
     /**
-     * Spawning behavior on for mid game. Spawns carriers and launcher with in a 1:3
+     * Spawning behavior on for mid game. Spawns carriers and launcher with in a 1:4
      * ratio (attempts to spawn up to 5 robots per turn)
      * @throws GameActionException
      */
