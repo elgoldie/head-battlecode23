@@ -151,7 +151,7 @@ public class HeadquartersAI extends RobotAI {
         if (rc.getRobotCount() > 10 && anchorCraftCooldown <= 0 && rc.getNumAnchors(Anchor.STANDARD) == 0) {
             if (rc.canBuildAnchor(Anchor.STANDARD)) {
                 rc.buildAnchor(Anchor.STANDARD);
-                // System.out.println("I just built an anchor!");
+                System.out.println("I just built an anchor!");
                 anchorCraftCooldown = 50;
             }
         }
