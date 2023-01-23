@@ -1,5 +1,6 @@
 package head_latest.comm;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import battlecode.common.*;
@@ -26,6 +27,8 @@ public class Communication {
     public int[] queue;
     public boolean queueActive;
 
+    public ArrayList<Integer> wellsToAdd;
+
     /**
      * A class to handle communication via the shared array.
      * @param rc The RobotController
@@ -38,6 +41,7 @@ public class Communication {
         this.queue = new int[64];
         for (int i = 0; i < 64; i++) queue[i] = -1;
         this.queueActive = false;
+        this.wellsToAdd = new ArrayList<>();
     }
 
     /**
@@ -57,13 +61,18 @@ public class Communication {
      * @throws GameActionException
      */
     public void queueFlush() throws GameActionException {
+        queueActive = false;
         for (int i = 0; i < 64; i++) {
             if (queue[i] != -1) {
                 rc.writeSharedArray(i, queue[i]);
                 queue[i] = -1;
             }
         }
-        queueActive = false;
+        int index = WELL_OFFSET;
+        for (int value : wellsToAdd) {
+            append(index, value);
+        }
+        wellsToAdd.clear();
     }
 
     /**
@@ -94,6 +103,20 @@ public class Communication {
         }
     }
 
+    public int append(int index, int value) throws GameActionException {
+        // TODO: free up 61 through 63
+        for (int i = index; i < 61; i++) {
+            int value2 = read(i);
+            if (value2 == 0) {
+                write(i, value);
+                return index;
+            } else if ((value2 & 0xFFF) == (value & 0xFFF)) {
+                return -1;
+            }
+        }
+        return -1;
+    }
+
     /**
      * Reads a MapLocation from the shared array.
      * The MapLocation is stored as a 12-bit value, with the first 6 bits being the x-coordinate
@@ -115,7 +138,7 @@ public class Communication {
      * @return The flags at the index
      * @throws GameActionException
      */
-    public int readLocationFlags(int index) throws GameActionException {
+    public int readFlags(int index) throws GameActionException {
         return read(index) >> 12;
     }
 
@@ -146,24 +169,9 @@ public class Communication {
      * @param flags The flags to write
      * @throws GameActionException
      */
-    public void writeLocationFlags(int index, int flags) throws GameActionException {
+    public void writeFlags(int index, int flags) throws GameActionException {
         int value = read(index);
         write(index, (flags << 12) + (value & 0xFFF));
-    }
-
-    /**
-     * Reads a MapLocation array from the shared array.
-     * @param startIndex The index to start reading from
-     * @param endIndex The index to stop reading at
-     * @return The MapLocation array
-     * @throws GameActionException
-     */
-    public MapLocation[] readLocations(int startIndex, int endIndex) throws GameActionException {
-        MapLocation[] array = new MapLocation[endIndex - startIndex];
-        for (int i = 0; i < endIndex - startIndex; i++) {
-            array[i] = readLocation(startIndex + i);
-        }
-        return array;
     }
 
     /**
@@ -173,15 +181,14 @@ public class Communication {
      * @return The MapLocation array
      * @throws GameActionException
      */
-    public MapLocation[] readLocationsNonNull(int startIndex, int endIndex) throws GameActionException {
+    public MapLocation[] readLocationsUntilNull(int startIndex, int endIndex) throws GameActionException {
         MapLocation[] array = new MapLocation[endIndex - startIndex];
         int count = 0;
         for (int i = 0; i < endIndex - startIndex; i++) {
             MapLocation loc = readLocation(startIndex + i);
-            if (loc != null) {
-                array[count] = loc;
-                count++;
-            }
+            if (loc == null) break;
+            array[count] = loc;
+            count++;
         }
         return Arrays.copyOf(array, count);
     }
@@ -193,17 +200,12 @@ public class Communication {
      * @param loc The MapLocation to write
      * @throws GameActionException
      */
-    public int appendLocation(int startIndex, MapLocation loc) throws GameActionException {
-        for (int index = startIndex; index < 64; index++) {
-            MapLocation loc2 = readLocation(index);
-            if (loc2 == null) {
-                writeLocation(index, loc);
-                return index;
-            } else if (loc2.equals(loc)) {
-                return -1;
-            }
-        }
-        return -1;
+    public int appendLocation(int index, MapLocation loc) throws GameActionException {
+        return append(index, (loc.x << 6) + loc.y + 1);
+    }
+
+    public int appendLocation(int index, MapLocation loc, int flags) throws GameActionException {
+        return append(index, (flags << 12) + (loc.x << 6) + loc.y + 1);
     }
 
     /**
@@ -226,5 +228,55 @@ public class Communication {
      */
     public boolean isDistressed(int index) throws GameActionException {
         return (read(index) & 0x1000) != 0;
+    }
+
+    public void appendWell(WellInfo well) throws GameActionException {
+        appendWell(well.getMapLocation(), well.getResourceType(), well.isUpgraded());
+    }
+
+    public void appendWell(MapLocation loc, ResourceType type, boolean upgraded) throws GameActionException {
+        int flag = type.ordinal() + (upgraded ? 4 : 0);
+        int value = (flag << 12) + (loc.x << 6) + loc.y + 1;
+        if (rc.canWriteSharedArray(0, 0)) {
+            append(WELL_OFFSET, value);
+        } else {
+            int storedWell;
+            for (int i = 0; i < wellsToAdd.size(); i++) {
+                storedWell = wellsToAdd.get(i);
+                if ((storedWell & 0xFFF) == (value & 0xFFF)) {
+                    if ((storedWell >> 12) == flag) return;
+                    else {
+                        wellsToAdd.set(i, value);
+                        return;
+                    }
+                }
+            }
+            for (int index = WELL_OFFSET; index < WELL_OFFSET + 10; index++) {
+                storedWell = read(index);
+                if ((storedWell & 0xFFF) == (value & 0xFFF)) {
+                    if ((storedWell >> 12) == flag) return;
+                    else {
+                        write(index, value);
+                        return;
+                    }
+                }
+            }
+            wellsToAdd.add(value);
+        }
+    }
+
+    public int[] readWells() throws GameActionException {
+        int[] wells = new int[64 - WELL_OFFSET + wellsToAdd.size()];
+        int count = 0;
+        int value;
+        for (int i = WELL_OFFSET; i < 64; i++) {
+            value = read(i);
+            if ((value & 0xFFF) == 0) break;
+            wells[count++] = read(i);
+        }
+        for (int well : wellsToAdd) {
+            wells[count++] = well;
+        }
+        return Arrays.copyOf(wells, count);
     }
 }

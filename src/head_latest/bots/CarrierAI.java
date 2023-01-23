@@ -181,7 +181,6 @@ public class CarrierAI extends RobotAI {
             if ((validSymmetryCount == 3 && rng.nextInt(5) == 0)
                 || (validSymmetryCount == 2 && rng.nextInt(10) == 0)) {
                 state = CarrierState.SCOUT;
-                System.out.println(rc.getLocation());
             }
 
         } else {

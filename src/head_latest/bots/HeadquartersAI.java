@@ -141,17 +141,17 @@ public class HeadquartersAI extends RobotAI {
             int amountEnemies = rc.senseNearbyRobots(20, enemyTeam).length;
             if (amountEnemies >= 3) {
                 // distress signal
-                comm.writeLocationFlags(myIndex, 1);
+                comm.writeFlags(myIndex, 1);
             } else {
                 // safe signal
-                comm.writeLocationFlags(myIndex, 0);
+                comm.writeFlags(myIndex, 0);
             }
         }
 
         if (rc.getRobotCount() > 10 && anchorCraftCooldown <= 0 && rc.getNumAnchors(Anchor.STANDARD) == 0) {
             if (rc.canBuildAnchor(Anchor.STANDARD)) {
                 rc.buildAnchor(Anchor.STANDARD);
-                System.out.println("I just built an anchor!");
+                // System.out.println("I just built an anchor!");
                 anchorCraftCooldown = 50;
             }
         }

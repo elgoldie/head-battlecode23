@@ -7,6 +7,7 @@ import battlecode.common.*;
 import head_latest.comm.Communication;
 import head_latest.path.Pathfinding;
 import head_latest.path.Symmetry;
+import head_latest.path.NaivePathfinding;
 import head_latest.path.WaypointPathfinding;
 
 public abstract class RobotAI {
@@ -58,7 +59,7 @@ public abstract class RobotAI {
      */
     public void stepTowardsDestination(MapLocation loc) throws GameActionException {
         // detect if the destination has changed
-        if (loc != destination) {
+        if (!loc.equals(destination)) {
             destination = loc;
             pathing.initPathfinding(destination);
         }
@@ -92,8 +93,8 @@ public abstract class RobotAI {
         this.seed = rng.nextInt();
 
         this.comm = new Communication(rc);
-        this.pathing = new WaypointPathfinding(rc);
-        // this.pathing = new NaivePathfinding(rc);
+        // this.pathing = new WaypointPathfinding(rc);
+        this.pathing = new NaivePathfinding(rc);
         
         this.aliveTurns = 0;
 
@@ -112,6 +113,7 @@ public abstract class RobotAI {
         if (rc.getType() != RobotType.HEADQUARTERS) {
             scanForIslands();
             scanForSymmetryConflicts();
+            scanForWells();
         
             // flush the queue
             if (rc.canWriteSharedArray(0, 0) && comm.queueActive)
@@ -225,7 +227,7 @@ public abstract class RobotAI {
         int closestDist = Integer.MAX_VALUE;
         // start at 4 because the first 4 locations are reserved for HQs
         for (int index = comm.ISLAND_OFFSET; index < comm.ISLAND_OFFSET + rc.getIslandCount(); index++) {
-            if (comm.readLocationFlags(index) == team.ordinal()) {
+            if (comm.readFlags(index) == team.ordinal()) {
                 MapLocation loc = comm.readLocation(index);
                 if (loc == null) continue;
                 int dist = loc.distanceSquaredTo(rc.getLocation());
@@ -250,8 +252,8 @@ public abstract class RobotAI {
             if (!comm.hasLocation(index - 1 + comm.ISLAND_OFFSET)) {
                 MapLocation islandLocation = rc.senseNearbyIslandLocations(index)[0];
                 comm.writeLocation(index - 1 + comm.ISLAND_OFFSET, islandLocation, newFlag);
-            } else if (comm.readLocationFlags(index - 1 + comm.ISLAND_OFFSET) != newFlag) {
-                comm.writeLocationFlags(index - 1 + comm.ISLAND_OFFSET, newFlag);
+            } else if (comm.readFlags(index - 1 + comm.ISLAND_OFFSET) != newFlag) {
+                comm.writeFlags(index - 1 + comm.ISLAND_OFFSET, newFlag);
             }
         }
     }
@@ -320,7 +322,7 @@ public abstract class RobotAI {
             }
         }
 
-        MapLocation[] myHQs = comm.readLocationsNonNull(0, 4);
+        MapLocation[] myHQs = comm.readLocationsUntilNull(0, 4);
         for (Symmetry symmetry : getValidSymmetries()) {
             for (MapLocation myHQ : myHQs) {
                 MapLocation whereItShouldBe = symmetry.transform(rc, myHQ);
@@ -329,6 +331,12 @@ public abstract class RobotAI {
                     break;
                 }
             }
+        }
+    }
+
+    public void scanForWells() throws GameActionException {
+        for (WellInfo well : rc.senseNearbyWells()) {
+            comm.appendWell(well);
         }
     }
 }
