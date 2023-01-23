@@ -93,8 +93,8 @@ public abstract class RobotAI {
         this.seed = rng.nextInt();
 
         this.comm = new Communication(rc);
-        this.pathing = new WaypointPathfinding(rc);
-        // this.pathing = new NaivePathfinding(rc);
+        // this.pathing = new WaypointPathfinding(rc);
+        this.pathing = new NaivePathfinding(rc);
         
         this.aliveTurns = 0;
 
