@@ -226,7 +226,7 @@ public class Path {
                     if (this.ohNoes.contains(myloc) && this.maybeinaccessible) {
                         // System.out.println("As far as I can tell, I can't get to that place right now");
                         this.inaccessible = true;
-                        return Direction.CENTER;
+                        //return Direction.CENTER;
                     } 
                     else if (this.ohNoes.contains(myloc)) {
                         this.maybeinaccessible = true;
