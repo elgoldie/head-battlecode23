@@ -1,5 +1,7 @@
 package head_latest.bots;
 
+import java.util.HashSet;
+
 import battlecode.common.*;
 
 public class CarrierAI extends RobotAI {
@@ -16,12 +18,15 @@ public class CarrierAI extends RobotAI {
     public CarrierState state;
 
     // the well we are going to
-    public MapLocation targetWell;
+    public MapLocation savedTargetWell;
     public ResourceType targetResource;
+
+    public HashSet<MapLocation> fullWells;
 
     public CarrierAI(RobotController rc, int id) throws GameActionException {
         super(rc, id);
         state = CarrierState.GO_TO_WELL;
+        fullWells = new HashSet<>();
         // TODO: maybe tweak the odds
         if (rng.nextBoolean())
             targetResource = ResourceType.ADAMANTIUM;
@@ -49,32 +54,48 @@ public class CarrierAI extends RobotAI {
         return weight;
     }
 
+    public int numberOfCarriersNearby(MapLocation loc) throws GameActionException {
+        int count = 0;
+        for (RobotInfo robot : rc.senseNearbyRobots(loc, 5, myTeam)) {
+            if (robot.getType() == RobotType.CARRIER)
+                count++;
+        }
+        return count;
+    }
+
     /**
-     * Returns the closest well to the robot.
+     * Returns the closest well to the robot (that isn't full).
      * @param type The resource type to look for. If null, looks for any well.
      * @return The closest well to the robot.
      * @throws GameActionException
      */
     public MapLocation closestWell(ResourceType type) throws GameActionException {
-        WellInfo[] wells;
-        if (type == null) wells = rc.senseNearbyWells();
-        else wells = rc.senseNearbyWells(type);
+        int[] wells = comm.readWells();
 
-        if (wells.length == 0) {
-            return null;
-        }
+        MapLocation well;
 
-        WellInfo well_one = null;
         int bestDistance = Integer.MAX_VALUE;
-        for (int i = 0; i < wells.length; i++) {
-            int distance = rc.getLocation().distanceSquaredTo(wells[i].getMapLocation());
-            if (distance < bestDistance) {
-                bestDistance = distance;
-                well_one = wells[i];
+        MapLocation bestWell = null;
+
+        for (int value : wells) {
+            well = comm.decodeLocation(value);
+            if (fullWells.contains(well))
+                continue;
+            else if (rc.getLocation().distanceSquaredTo(well) <= 13 && rc.canSenseLocation(well) && numberOfCarriersNearby(well) > 5) {
+                fullWells.add(well);
+                continue;
+            }
+
+            if (type == null || type == ResourceType.values()[(value >> 12) & 3]) {
+                int distance = rc.getLocation().distanceSquaredTo(well);
+                if (distance < bestDistance) {
+                    bestDistance = distance;
+                    bestWell = well;
+                }
             }
         }
 
-        return well_one.getMapLocation();
+        return bestWell;
     }
 
     /**
@@ -126,8 +147,14 @@ public class CarrierAI extends RobotAI {
      */
     public void behaviorGoToWell() throws GameActionException {
 
-        if (targetWell == null)
+        MapLocation targetWell;
+        if (savedTargetWell != null) {
+            targetWell = savedTargetWell;
+        } else {
             targetWell = closestWell(targetResource);
+        }
+        
+        rc.setIndicatorString(state + " | " + savedTargetWell + " | " + fullWells);
 
         if (getInventoryWeight() == 40) {
             state = CarrierState.RETURN_HOME;
@@ -141,7 +168,9 @@ public class CarrierAI extends RobotAI {
                 rc.collectResource(targetWell, -1);
             }
 
-            if (!hasMined) {
+            if (hasMined) {
+                savedTargetWell = targetWell;
+            } else {
                 stepTowardsDestination(targetWell);
                 if (rc.isMovementReady())
                     stepTowardsDestination(targetWell);

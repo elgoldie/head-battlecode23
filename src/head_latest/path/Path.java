@@ -299,7 +299,7 @@ public class Path {
             break;
         }
         //System.out.println(this.myMove);
-        rc.setIndicatorString("Next waypoint: "+waypoint.toString()+" | "+this.handedness+" | Memory: "+this.memory_mode);
+        // rc.setIndicatorString("Next waypoint: "+waypoint.toString()+" | "+this.handedness+" | Memory: "+this.memory_mode);
         rc.setIndicatorDot(waypoint, 200, 100, 100);
 
         if (!rc.onTheMap(myloc.add(this.myMove))) {

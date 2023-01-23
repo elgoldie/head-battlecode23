@@ -75,6 +75,12 @@ public class Communication {
         wellsToAdd.clear();
     }
 
+    public MapLocation decodeLocation(int value) {
+        if ((value & 0xFFF) == 0) return null;
+        value--;
+        return new MapLocation((value >> 6) & 0x3F, value & 0x3F);
+    }
+
     /**
      * Reads from the queue if it is active, otherwise reads from the shared array.
      * @param index The index to read from
