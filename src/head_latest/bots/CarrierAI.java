@@ -98,6 +98,8 @@ public class CarrierAI extends RobotAI {
         return bestWell;
     }
 
+
+
     /**
      * Returns the closest well to the robot.
      * @return The closest well to the robot.
@@ -105,6 +107,22 @@ public class CarrierAI extends RobotAI {
      */
     public MapLocation closestWell() throws GameActionException {
         return closestWell(null);
+    }
+
+    /**
+     * Returns if robot is on enemy island
+     * @return Boolean of if on enemy island
+     * @throws GameActionException
+     */
+    public boolean onEnemyIsland() throws GameActionException {
+        int islandIndex = rc.senseIsland(rc.getLocation());
+        boolean onEnemyIsland = false;
+        if (islandIndex != -1) {
+            if (rc.senseTeamOccupyingIsland(islandIndex) == rc.getTeam().opponent()) {
+                onEnemyIsland = true;
+            }
+        } 
+        return onEnemyIsland;
     }
 
     /**
@@ -277,19 +295,23 @@ public class CarrierAI extends RobotAI {
             }
         }
 
-        switch (state) {
-            case SCOUT:
-                behaviorScout();
-                break;
-            case GO_TO_WELL:
-                behaviorGoToWell();
-                break;
-            case RETURN_HOME:
-                behaviorReturnHome();
-                break;
-            case DELIVER_ANCHOR:
-                behaviorDeliverAnchor();
-                break;
+        if (onEnemyIsland()) {
+
+        } else {
+            switch (state) {
+                case SCOUT:
+                    behaviorScout();
+                    break;
+                case GO_TO_WELL:
+                    behaviorGoToWell();
+                    break;
+                case RETURN_HOME:
+                    behaviorReturnHome();
+                    break;
+                case DELIVER_ANCHOR:
+                    behaviorDeliverAnchor();
+                    break;
+            }
         }
     }
 }
