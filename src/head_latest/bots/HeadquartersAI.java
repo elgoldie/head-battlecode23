@@ -156,6 +156,10 @@ public class HeadquartersAI extends RobotAI {
             }
         }
 
+        if (rc.canBuildAnchor(Anchor.ACCELERATING)) {
+            rc.buildAnchor(Anchor.ACCELERATING);
+        }
+
         if (rc.getRobotCount() >= 30) {
             state = SpawningState.MIDGAME;
         } else if (rc.getRoundNum() >= 3) {

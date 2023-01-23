@@ -162,8 +162,9 @@ public class CarrierAI extends RobotAI {
         if (rc.getLocation().isAdjacentTo(hqLocation)) {
 
             if (getInventoryWeight() == 0) {
-                
-                if (rc.canTakeAnchor(hqLocation, Anchor.STANDARD)) {
+                if (rc.canTakeAnchor(hqLocation, Anchor.ACCELERATING)) {
+                    rc.takeAnchor(hqLocation, Anchor.ACCELERATING);
+                } else if (rc.canTakeAnchor(hqLocation, Anchor.STANDARD)) {
                     rc.takeAnchor(hqLocation, Anchor.STANDARD);
                     state = CarrierState.DELIVER_ANCHOR;
                 } else {
