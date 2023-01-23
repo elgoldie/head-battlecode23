@@ -93,8 +93,8 @@ public abstract class RobotAI {
         this.seed = rng.nextInt();
 
         this.comm = new Communication(rc);
-        // this.pathing = new WaypointPathfinding(rc);
-        this.pathing = new NaivePathfinding(rc);
+        this.pathing = new WaypointPathfinding(rc);
+        // this.pathing = new NaivePathfinding(rc);
         
         this.aliveTurns = 0;
 
@@ -246,7 +246,7 @@ public abstract class RobotAI {
      */
     public void scanForIslands() throws GameActionException {        
         for (int index : rc.senseNearbyIslands()) {
-            // if island is undiscovered
+
             int newFlag = rc.senseTeamOccupyingIsland(index).ordinal();
             
             if (!comm.hasLocation(index - 1 + comm.ISLAND_OFFSET)) {
