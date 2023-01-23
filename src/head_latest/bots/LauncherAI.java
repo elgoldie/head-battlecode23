@@ -28,6 +28,22 @@ public class LauncherAI extends RobotAI {
         return loc;
     }
 
+    /**
+     * Returns if robot is on enemy island
+     * @return Boolean of if on enemy island
+     * @throws GameActionException
+     */
+    public boolean onEnemyIsland() throws GameActionException {
+        int islandIndex = rc.senseIsland(rc.getLocation());
+        boolean onEnemyIsland = false;
+        if (islandIndex != -1) {
+            if (rc.senseTeamOccupyingIsland(islandIndex) == rc.getTeam().opponent()) {
+                onEnemyIsland = true;
+            }
+        } 
+        return onEnemyIsland;
+    }
+
     // public boolean checkForDistress() throws GameActionException {
     //     MapLocation loc = null;
     //     int dist = Integer.MAX_VALUE;
@@ -92,8 +108,9 @@ public class LauncherAI extends RobotAI {
                 stepTowardsDestination(target.location);
             }
         }
+        if (onEnemyIsland()) {
 
-        if (true) {
+        } else if (true) {
             MapLocation enemyHQ = closestEnemyHeadquarters();
             if (enemyHQ != null) {
                 stepTowardsDestination(enemyHQ);
