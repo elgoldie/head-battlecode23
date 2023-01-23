@@ -26,6 +26,7 @@ public class CarrierAI extends RobotAI {
     public CarrierAI(RobotController rc, int id) throws GameActionException {
         super(rc, id);
         state = CarrierState.GO_TO_WELL;
+
         fullWells = new HashSet<>();
         // TODO: maybe tweak the odds
         if (rng.nextBoolean())
@@ -97,8 +98,6 @@ public class CarrierAI extends RobotAI {
 
         return bestWell;
     }
-
-
 
     /**
      * Returns the closest well to the robot.
@@ -295,9 +294,7 @@ public class CarrierAI extends RobotAI {
             }
         }
 
-        if (onEnemyIsland()) {
-
-        } else {
+        if (!onEnemyIsland()) {
             switch (state) {
                 case SCOUT:
                     behaviorScout();

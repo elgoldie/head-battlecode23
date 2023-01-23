@@ -1,13 +1,11 @@
 package head_latest.bots;
 
 import battlecode.common.*;
-import head_latest.path.NaivePathfinding;
 
 public class LauncherAI extends RobotAI {
     
     public LauncherAI(RobotController rc, int id) throws GameActionException {
         super(rc, id);
-        pathing = new NaivePathfinding(rc);
     }
 
     /**
@@ -108,9 +106,8 @@ public class LauncherAI extends RobotAI {
                 stepTowardsDestination(target.location);
             }
         }
-        if (onEnemyIsland()) {
 
-        } else if (true) {
+        if (!onEnemyIsland()) {
             MapLocation enemyHQ = closestEnemyHeadquarters();
             if (enemyHQ != null) {
                 stepTowardsDestination(enemyHQ);
