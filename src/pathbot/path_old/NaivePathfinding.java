@@ -1,4 +1,4 @@
-package head_v2_pf.path;
+package pathbot.path_old;
 
 import battlecode.common.Direction;
 import battlecode.common.MapLocation;
@@ -15,14 +15,14 @@ public class NaivePathfinding implements Pathfinding {
     }
 
     public Direction findPath() {
-        return findPath(this.destination);
+        return pursue(this.destination);
     }
 
     public NaivePathfinding(RobotController rc) {
         this.rc = rc;
     }
 
-    public Direction findPath(MapLocation target) {
+    public Direction pursue(MapLocation target) {
         Direction direction = rc.getLocation().directionTo(target);
         if (direction == Direction.CENTER) return Direction.CENTER;
 

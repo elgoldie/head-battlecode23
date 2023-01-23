@@ -1,6 +1,8 @@
-package head_v2_pf.path;
+/* package head_v2_pf.path;
 
+import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import battlecode.common.*;
 
@@ -8,12 +10,9 @@ public class Path {
     
     public RobotController rc;
 
-    // WAYPOINT TRACKING
-    public ArrayList<MapLocation> waypoints = new ArrayList<MapLocation>();
-    public ArrayList<MapLocation> ohNoes = new ArrayList<MapLocation>();
-
-    public boolean maybeinaccessible = false;
-    public boolean inaccessible = false;
+    // WAYPOINT 
+    @SuppressWarnings("unchecked")
+    public ArrayList<Waypoint>[] waypoints = (ArrayList<Waypoint>[]) new ArrayList[2];
 
     public int waypoint_pointer = -1;
     public int direction = 0; //0 = forward (origin -> destination), 1 = backwards
@@ -25,17 +24,30 @@ public class Path {
         LEFT,
         RIGHT
     }
+
+    public enum HandType {
+        NONE,
+        UNKNOWN,
+        CERTAIN,
+        FORCED,
+        PROVISIONAL
+    }
+
     public boolean memory_mode;
     
     public Handedness handedness = Handedness.NONE;
     public Direction lefthand;
     public Direction righthand;
+    public int stepcount;
+
     public Direction myMove;
+    public MapLocation myBonk;
     
     
 
     public Path(MapLocation origin, MapLocation destination, RobotController rc) {
-        this.waypoints.add(origin); this.waypoints.add(destination);
+        this.waypoints[0].add(new Waypoint(origin)); this.waypoints[0].add(new Waypoint(destination));
+        this.waypoints[1].add(new Waypoint(origin)); this.waypoints[1].add(new Waypoint(destination));
         this.rc = rc;
     }
 
@@ -48,14 +60,56 @@ public class Path {
         int start = waypoints[0];
         int end = waypoints[1];
         this.direction = start - end > 0 ? 1 : 0;
-        this.waypoint_pointer = start - 2*direction + 1;
         this.handedness = Handedness.NONE;
         this.memory_mode = false;
         this.myMove = Direction.CENTER;
-        this.ohNoes.clear();
-        this.inaccessible = false;
-        this.maybeinaccessible = false;
-        rc.setIndicatorString("Destination: "+this.waypoints.get(end).toString());
+
+        this.waypoint_pointer = advanced_pointer(start, 1);
+
+        int[] index_shift = new int[2];
+
+        // skip past CERTAIN entries
+
+        // i = 0: start (with direction) | 1: end (against direction). 
+        // j = 0: FW index | 1: BW index.
+        for (int i = 0; i < 2; i++) {
+            for (int j = 0; j < 2; j++) {   
+                index_shift[j] = 1 - i - j;
+            }            
+            //FW            start index     corresp. shift                                      BW                  start index
+            while (this.waypoints[0].get(waypoints[i] + index_shift[0]).handtype == HandType.CERTAIN && this.waypoints[1].get(waypoints[i] + index_shift[1]).handtype == HandType.CERTAIN) {
+                waypoints[i] = advanced_pointer(waypoints[i], 1);
+            }
+        }
+        
+        int next_uncertain_pointer = waypoints[this.direction] + index_shift[this.direction];
+        if (isValid(advanced_pointer(next_uncertain_pointer, 1))) {
+            // need to find next handed WP
+            Waypoint first_fw_uncertain = this.waypoints[this.direction].get(next_uncertain_pointer);
+            Waypoint second_fw_uncertain = this.waypoints[this.direction].get(advanced_pointer(next_uncertain_pointer, 1));
+            Waypoint first_bw_uncertain = this.waypoints[1 - this.direction].get(next_uncertain_pointer);
+            Waypoint second_bw_uncertain = this.waypoints[1 - this.direction].get(advanced_pointer(next_uncertain_pointer, 1));
+            
+            if ((first_fw_uncertain.handtype == HandType.NONE || first_fw_uncertain.handtype == HandType.UNKNOWN)) {
+                if (first_bw_uncertain.handtype == HandType.NONE && second_bw_uncertain.handtype == HandType.NONE) {
+                    if (second_bw_uncertain.handtype == HandType.NONE) {
+                        // forced
+                    }
+                }
+            }
+        }
+        
+        // if unknown, work with maxes. Else, mins.
+
+
+
+
+        //this.waypoint_pointer = start - 2*direction + 1;
+        
+    }
+
+    public int direction_sign(int d) {
+        return -2*d+1;
     }
 
     public void advance_pointer() {
@@ -64,20 +118,28 @@ public class Path {
         //System.out.println("New pointer: "+this.waypoint_pointer);
     }
 
+    // advance to next handed? 
+
     public int advanced_pointer(int i) {
         return this.waypoint_pointer - i*(2*direction - 1);
     }
 
+    public int advanced_pointer(int pointer, int i) {
+        return pointer - i*(2*direction - 1);
+    }
+
     public boolean isEndpoint() {
-        return (this.waypoint_pointer == 0 && this.direction == 1) || (this.waypoint_pointer == this.waypoints.size() - 1 && this.direction == 0);
+        // TODO : revamp
+        return (this.waypoint_pointer == 0 && this.direction == 1) || (this.waypoint_pointer == this.waypoints[0].size() - 1 && this.direction == 0);
     }
 
     public boolean isValid(int pointer) {
-        return (pointer >= 0 && pointer <= this.waypoints.size() - 1);
+        return (pointer >= 0 && pointer <= this.waypoints[this.direction].size() - 1);
     }
 
     public boolean hasArrived(MapLocation myloc) {
-        return this.isEndpoint() && myloc.isAdjacentTo(this.waypoints.get(this.waypoint_pointer));
+        // might need full endpoint/destination tracking
+        return this.isEndpoint() && myloc.isAdjacentTo(this.waypoints[this.direction].get(this.waypoint_pointer));
     }
 
     public Direction stepnext() throws GameActionException { 
@@ -109,7 +171,6 @@ public class Path {
             this.handedness = Handedness.NONE;
             this.myMove = Direction.CENTER;
             System.out.println("Waypoint reached! Now pursuing: "+this.waypoints.get(this.waypoint_pointer)+"\nfrom: "+myloc);
-            this.ohNoes.clear();
             //System.out.println("New pointer: "+this.waypoint_pointer);
             waypoint = this.waypoints.get(this.waypoint_pointer);
         }
@@ -123,22 +184,6 @@ public class Path {
 
         switch (this.handedness) {
             case RIGHT:
-                /* if (this.ohNoes.contains(myloc) && this.myMove != Direction.CENTER) {
-                    System.out.println("This is an oh noes moment");
-                    if (this.maybeinaccessible) {
-                        System.out.println("As far as I can tell, I can't get to that place right now");
-                        this.inaccessible = true;
-                        return Direction.CENTER;
-                    }
-                    System.out.println("Switching handedness");
-                    this.maybeinaccessible = true;
-                    this.handedness = Handedness.LEFT;
-                }
-                if (this.myMove != Direction.CENTER) {
-                    if (this.ohNoes.size() % 2 == 1) {
-                        this.ohNoes.add(myloc);
-                    }
-                } */
                 this.righthand = objective;
                 while (dot(this.righthand, this.myMove) < 0 || !rc.canMove(this.righthand)) {
                     this.memory_mode = this.memory_mode && !(dot(this.righthand, this.myMove) >= 0 && rc.sensePassability(myloc.add(this.righthand)));
@@ -148,7 +193,7 @@ public class Path {
                         System.out.println(!rc.canMove(this.righthand));
                         System.out.println(dot(this.righthand, this.myMove));
                         System.out.println((dot(this.righthand, this.myMove) < 0 || !rc.canMove(this.righthand)));
-                    } */
+                    } :)
                     //else { rc.resign(); }
                     if (this.righthand == objective) { return Direction.CENTER; }
                 }
@@ -168,22 +213,6 @@ public class Path {
                 this.myMove = this.righthand;              
             break;
             case LEFT:
-                /* if (this.ohNoes.contains(myloc) && this.myMove != Direction.CENTER) {
-                    System.out.println("This is an oh noes moment");
-                    if (this.maybeinaccessible) {
-                        System.out.println("As far as I can tell, I can't get to that place right now");
-                        this.inaccessible = true;
-                        return Direction.CENTER;
-                    }
-                    System.out.println("Switching handedness");
-                    this.maybeinaccessible = true;
-                    this.handedness = Handedness.RIGHT;
-                }
-                if (this.myMove != Direction.CENTER) {
-                    if (this.ohNoes.size() % 2 == 1) {
-                        this.ohNoes.add(myloc);
-                    }
-                } */
                 this.lefthand = objective;
                 while (dot(this.lefthand, this.myMove) < 0 || !rc.canMove(this.lefthand)) {
                     this.memory_mode = this.memory_mode && !(dot(this.lefthand, this.myMove) >= 0 && rc.sensePassability(myloc.add(this.lefthand)));
@@ -208,29 +237,13 @@ public class Path {
                 if (rc.canMove(objective)) {
                     this.myMove = objective;
                 } else {
-                    System.out.println(this.ohNoes.size());
-                    if (this.ohNoes.contains(myloc) && this.maybeinaccessible) {
-                        System.out.println("As far as I can tell, I can't get to that place right now");
-                        this.inaccessible = true;
-                        return Direction.CENTER;
-                    } 
-                    else if (this.ohNoes.contains(myloc)) {
-                        this.maybeinaccessible = true;
-                        System.out.println("I've set maybe inaccessible to true");
-                        //rc.resign();
-                    }
-                    else {
-                        System.out.println("I went bonk while travelling to destination.");
-                        this.ohNoes.add(myloc);
-                        System.out.println("I've added something to my ohnoes array");
-                    }
                     this.memory_mode = true;
                     this.righthand = objective;
                     this.lefthand = objective;
                     /* if (rc.getRoundNum() <= 10) {
                         System.out.println(this.righthand);
                         System.out.println(this.lefthand);
-                    } */
+                    } :)
                     while (!rc.canMove(this.righthand) && !rc.canMove(this.lefthand)) {
                         /* System.out.println(this.righthand);
                         System.out.println(myloc.add(this.righthand));
@@ -239,7 +252,7 @@ public class Path {
                         System.out.println(this.lefthand);
                         System.out.println(myloc.add(this.lefthand));
                         System.out.println(rc.canMove(this.lefthand) );
-                        System.out.println(rc.sensePassability(myloc.add(this.lefthand))); */
+                        System.out.println(rc.sensePassability(myloc.add(this.lefthand))); :)
                         this.memory_mode = this.memory_mode && (!rc.sensePassability(myloc.add(this.righthand)) && !rc.sensePassability(myloc.add(this.lefthand)));
                         if (!rc.sensePassability(myloc.add(this.righthand)) ^ !rc.sensePassability(myloc.add(this.lefthand))) { System.out.println(this.lefthand); System.out.println(this.righthand); System.out.println("Whomst the fuck"); }
                         this.righthand = this.righthand.rotateLeft();
@@ -247,16 +260,16 @@ public class Path {
                         /* if (rc.getRoundNum() <= 10) {
                             System.out.println(this.righthand);
                             System.out.println(this.lefthand);
-                        } */
+                        } :)
                         if (this.lefthand == this.righthand) { break; }
                     }
                     /* if (rc.getRoundNum() <= 10) {
                         System.out.println(this.righthand);
                         System.out.println(this.lefthand);
-                    } */
+                    } :)
                     /* System.out.println("My current memory status: "+this.memory_mode);
                     System.out.println(this.righthand);
-                    System.out.println(this.lefthand);  */
+                    System.out.println(this.lefthand);  :)
                     if (rc.canMove(this.righthand)) {
                         //System.out.println("My right hand can move");
                         if (rc.canMove(this.lefthand) && waypoint.distanceSquaredTo(myloc.add(this.righthand)) >= waypoint.distanceSquaredTo(myloc.add(this.lefthand))) {
@@ -277,23 +290,7 @@ public class Path {
                         this.myMove = this.lefthand;
                         this.memory_mode = this.memory_mode && !(!rc.canMove(this.righthand) && rc.sensePassability(myloc.add(this.righthand)));
                         //System.out.println("My current memory status: "+this.memory_mode);
-                    } else { /* System.out.println("Something bad happened eom"); */ return Direction.CENTER; }
-                    System.out.println("Handedenss discovered. My handedness: "+this.handedness);
-                    if (this.maybeinaccessible) {
-                        switch (this.handedness) {
-                            case RIGHT:
-                            this.handedness = Handedness.LEFT;
-                            break;
-                            case LEFT:
-                            this.handedness = Handedness.RIGHT;
-                            break;
-                            case NONE:
-                        }
-                        System.out.println("I've overwritten my handedness");
-                        rc.setIndicatorString("My overwritten handedness: "+this.handedness);
-                        this.myMove = Direction.CENTER;
-                        return this.stepnext();
-                    }
+                    } else { /* System.out.println("Something bad happened eom"); :) return Direction.CENTER; }
                     
                 }
             break;
@@ -316,6 +313,7 @@ public class Path {
             }
             return this.myMove.opposite();
         }
+        //if (rc.getRoundNum() == 4) { rc.resign(); }
 
         return this.myMove;
     }
@@ -323,7 +321,7 @@ public class Path {
     // memory
     public void add_found_waypoint(MapLocation waypoint) {
         // Waypoint pointer points to present destination. 
-        // forwards: add before 
+        // forwards: add before
         // backwards: add after
         System.out.println("I've found a new waypoint!");
         this.waypoints.add(this.waypoint_pointer + this.direction, waypoint);
@@ -362,9 +360,18 @@ public class Path {
         return waypointers;
     }
 
+    
+    // HELPERS
+
     public float dot(Direction d1, Direction d2) {
         return d1.dx * d2.dx + d1.dy * d2.dy;
     }
+
+    public float min_steps(MapLocation m1, MapLocation m2) {
+        return Math.min(Math.abs(m1.x - m2.x), Math.min(Math.abs(m1.y - m2.y)));
+    }
+
+
 
     public String toString() {
         String ret = "";
@@ -379,3 +386,5 @@ public class Path {
     }
     
 }
+
+ */

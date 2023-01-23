@@ -1,4 +1,4 @@
-package head_v2_pf.path;
+package pathbot.path;
 
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -12,7 +12,7 @@ public interface Pathfinding {
 
     public Direction findPath() throws GameActionException;
 
-    public Direction findPath(MapLocation target);
+    public Direction pursue(MapLocation target) throws GameActionException;
 
     public boolean hasArrived();
     

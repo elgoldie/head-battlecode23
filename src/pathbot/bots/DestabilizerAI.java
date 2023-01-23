@@ -1,4 +1,4 @@
-package head_v2_pf.bots;
+/* package pathbot.bots;
 
 import battlecode.common.*;
 
@@ -13,3 +13,4 @@ public class DestabilizerAI extends RobotAI {
         super.run();
     }
 }
+ */

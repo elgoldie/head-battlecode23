@@ -1,4 +1,4 @@
-package head_v2_pf.path;
+/* package pathbot.path;
 
 import battlecode.common.*;
 
@@ -63,7 +63,7 @@ public class WaypointPathfinding implements Pathfinding {
         
     }
 
-    public Direction findPath(MapLocation target) { return Direction.CENTER; }
+    public Direction pursue(MapLocation target) { return Direction.CENTER; }
 
     public boolean hasArrived() {
         MapLocation myloc = rc.getLocation();
@@ -76,3 +76,4 @@ public class WaypointPathfinding implements Pathfinding {
         return false;
     }
 }
+ */

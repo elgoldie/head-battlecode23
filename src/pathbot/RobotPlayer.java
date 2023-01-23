@@ -1,4 +1,4 @@
-package head_v2_pf;
+/* package pathbot;
 
 import battlecode.common.*;
 import head_v2_pf.bots.*;
@@ -34,3 +34,4 @@ public strictfp class RobotPlayer {
         }
     }
 }
+ */
