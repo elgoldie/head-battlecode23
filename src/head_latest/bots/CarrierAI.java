@@ -211,6 +211,7 @@ public class CarrierAI extends RobotAI {
             if (getInventoryWeight() == 0) {
                 if (rc.canTakeAnchor(hqLocation, Anchor.ACCELERATING)) {
                     rc.takeAnchor(hqLocation, Anchor.ACCELERATING);
+                    state = CarrierState.DELIVER_ANCHOR;
                 } else if (rc.canTakeAnchor(hqLocation, Anchor.STANDARD)) {
                     rc.takeAnchor(hqLocation, Anchor.STANDARD);
                     state = CarrierState.DELIVER_ANCHOR;
@@ -249,6 +250,9 @@ public class CarrierAI extends RobotAI {
             wander();
         } else {
 
+            if ((rc.getNumAnchors(Anchor.ACCELERATING) ==0) && (rc.getNumAnchors(Anchor.STANDARD) ==0)){
+                state = CarrierState.RETURN_HOME;
+            }
             if (rc.getLocation().isAdjacentTo(destination)) {
                 if (tryMove(rc.getLocation().directionTo(destination))) {
                     if (rc.canPlaceAnchor()) {
@@ -259,6 +263,10 @@ public class CarrierAI extends RobotAI {
             }
 
             if (!rc.getLocation().equals(destination)) {
+                if (rc.canPlaceAnchor()) {
+                    rc.placeAnchor();
+                    state = CarrierState.RETURN_HOME;
+                }
                 
                 stepTowardsDestination(destination);
                 if (rc.isMovementReady())
