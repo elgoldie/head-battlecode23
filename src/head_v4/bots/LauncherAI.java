@@ -1,11 +1,11 @@
-package head_latest.bots;
+package head_v4.bots;
 
 import battlecode.common.*;
 
 public class LauncherAI extends RobotAI {
     
-    public LauncherAI(RobotController rc) throws GameActionException {
-        super(rc);
+    public LauncherAI(RobotController rc, int id) throws GameActionException {
+        super(rc, id);
     }
 
     /**
@@ -48,7 +48,7 @@ public class LauncherAI extends RobotAI {
     //     for (int i = comm.HQ_OFFSET; i < comm.HQ_OFFSET + 4; i++) {
     //         MapLocation hqLoc = comm.readLocation(i);
     //         if (hqLoc == null) break;
-    //         if (comm.readFlags(i) == 0) continue;
+    //         if (comm.readLocationFlags(i) == 0) continue;
     //         int newDist = hqLoc.distanceSquaredTo(rc.getLocation());
     //         if (newDist < dist) {
     //             dist = newDist;
@@ -56,32 +56,31 @@ public class LauncherAI extends RobotAI {
     //         }
     //     }
     //     if (loc == null) {
+    //         wander();
     //         return false;
     //     } else {
-    //         stepTowardsDestination(loc);
+    //         tryMoveOrWander(pathing.findPath(loc));
     //         return true;
     //     }
     // }
 
     @Override
-    public boolean stepTowardsDestination(MapLocation destination) throws GameActionException {
-        rc.setIndicatorString(destination.toString());
-        if (rng.nextInt(3) == 0) {
-            MapLocation lowestIDNeighbor = null;
-            // int lowestID = rc.getID();
-            int lowestID = Integer.MAX_VALUE;
-            for (RobotInfo robot : rc.senseNearbyRobots(-1, myTeam)) {
-                if (robot.getType() == RobotType.LAUNCHER && robot.getID() < lowestID) {
-                    lowestID = robot.getID();
-                    lowestIDNeighbor = robot.getLocation();
+    public void stepTowardsDestination(MapLocation destination) throws GameActionException {
+        if (rng.nextInt(3) != 0) {
+            MapLocation averageNeighbor = averagePositionOfNearbyRobots(myTeam, RobotType.LAUNCHER);
+            if (rc.getLocation().distanceSquaredTo(averageNeighbor) > 5) {
+                Direction dir = rc.getLocation().directionTo(averageNeighbor);
+                for (RobotInfo robot : rc.senseNearbyRobots(-1, enemyTeam)) {
+                    if (robot.getType() == RobotType.HEADQUARTERS && rc.getLocation().add(dir).distanceSquaredTo(robot.getLocation()) <= 9) {
+                        return;
+                    }
                 }
-            }
-            if (lowestIDNeighbor != null) {
-                return super.stepTowardsDestination(lowestIDNeighbor);
+                tryMove(dir);
+                return;
             }
         }
 
-        return super.stepTowardsDestination(destination);
+        super.stepTowardsDestination(destination);
     }
 
     @Override
@@ -89,13 +88,22 @@ public class LauncherAI extends RobotAI {
         super.run();
 
         int radius = rc.getType().actionRadiusSquared;
-        MapLocation target = getAttackTarget(radius);
+
+        int maxValue = Integer.MIN_VALUE;
+        RobotInfo target = null;
+        for (RobotInfo robot : rc.senseNearbyRobots(radius, enemyTeam)) {
+            int value = enemyValue(robot);
+            if (value > maxValue) {
+                maxValue = value;
+                target = robot;
+            }
+        }
 
         if (target != null) {
-            if (rc.canAttack(target)) {      
-                rc.attack(target);
+            if (rc.canAttack(target.location)) {      
+                rc.attack(target.location);
             } else {
-                stepTowardsDestination(target);
+                stepTowardsDestination(target.location);
             }
         }
 

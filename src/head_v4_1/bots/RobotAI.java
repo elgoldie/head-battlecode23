@@ -1,13 +1,13 @@
-package head_latest.bots;
+package head_v4_1.bots;
 
 import java.util.ArrayList;
 import java.util.Random;
 
 import battlecode.common.*;
-import head_latest.comm.Communication;
-import head_latest.path.Pathfinding;
-import head_latest.path.Symmetry;
-import head_latest.path.NaivePathfinding;
+import head_v4_1.comm.Communication;
+import head_v4_1.path.Pathfinding;
+import head_v4_1.path.Symmetry;
+import head_v4_1.path.NaivePathfinding;
 
 public abstract class RobotAI {
 
@@ -108,15 +108,17 @@ public abstract class RobotAI {
         return bestRobot;
     }
 
-    public RobotAI(RobotController rc) throws GameActionException {
+
+    public RobotAI(RobotController rc, int id) throws GameActionException {
         this.rc = rc;
+        this.id = id;
         
         this.rng = new Random(id);
         this.seed = rng.nextInt();
 
         this.comm = new Communication(rc);
         // this.pathing = new WaypointPathfinding(rc);
-        this.pathing = new NaivePathfinding(rc, rng);
+        this.pathing = new NaivePathfinding(rc);
         
         this.aliveTurns = 0;
 

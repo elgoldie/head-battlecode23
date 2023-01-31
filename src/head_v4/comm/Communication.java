@@ -1,4 +1,4 @@
-package head_latest.comm;
+package head_v4.comm;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,19 +54,6 @@ public class Communication {
             array[i] = rc.readSharedArray(i);
         }
         return Arrays.toString(array);
-    }
-
-    /**
-     * Uses the indicator dot to display the known locations.
-     * @throws GameActionException
-     */
-    public void dispArrayIndicators() throws GameActionException {
-        for (int i = 0; i < 64; i++) {
-            MapLocation loc = readLocation(i);
-            if (loc != null) {
-                rc.setIndicatorDot(loc, 255, 0, 255);
-            }
-        }
     }
 
     /**
@@ -128,7 +115,7 @@ public class Communication {
             int value2 = read(i);
             if (value2 == 0) {
                 write(i, value);
-                return i;
+                return index;
             } else if ((value2 & 0xFFF) == (value & 0xFFF)) {
                 return -1;
             }

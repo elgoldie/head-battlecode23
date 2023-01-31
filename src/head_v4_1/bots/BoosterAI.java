@@ -1,11 +1,11 @@
-package head_latest.bots;
+package head_v4_1.bots;
 
 import battlecode.common.*;
 
 public class BoosterAI extends RobotAI {
     
-    public BoosterAI(RobotController rc) throws GameActionException {
-        super(rc);
+    public BoosterAI(RobotController rc, int id) throws GameActionException {
+        super(rc, id);
     }
 
     @Override

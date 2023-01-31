@@ -9,14 +9,13 @@ public strictfp class RobotPlayer {
     public static void run(RobotController rc) throws GameActionException {
 
         RobotAI ai = null;
-        int myID = rc.getID();
         switch (rc.getType()) {
-            case HEADQUARTERS: ai = new HeadquartersAI(rc, myID); break;
-            case CARRIER: ai = new CarrierAI(rc, myID); break;
-            case LAUNCHER: ai = new LauncherAI(rc, myID); break;
-            case BOOSTER: ai = new BoosterAI(rc, myID); break;
-            case DESTABILIZER: ai = new DestabilizerAI(rc, myID); break;
-            case AMPLIFIER: ai = new AmplifierAI(rc, myID); break;
+            case HEADQUARTERS: ai = new HeadquartersAI(rc); break;
+            case CARRIER: ai = new CarrierAI(rc); break;
+            case LAUNCHER: ai = new LauncherAI(rc); break;
+            case BOOSTER: ai = new BoosterAI(rc); break;
+            case DESTABILIZER: ai = new DestabilizerAI(rc); break;
+            case AMPLIFIER: ai = new AmplifierAI(rc); break;
         }
 
         while (true) {

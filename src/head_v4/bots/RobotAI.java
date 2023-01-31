@@ -1,13 +1,13 @@
-package head_latest.bots;
+package head_v4.bots;
 
 import java.util.ArrayList;
 import java.util.Random;
 
 import battlecode.common.*;
-import head_latest.comm.Communication;
-import head_latest.path.Pathfinding;
-import head_latest.path.Symmetry;
-import head_latest.path.NaivePathfinding;
+import head_v4.comm.Communication;
+import head_v4.path.Pathfinding;
+import head_v4.path.Symmetry;
+import head_v4.path.NaivePathfinding;
 
 public abstract class RobotAI {
 
@@ -54,10 +54,9 @@ public abstract class RobotAI {
     /**
      * Makes a step towards the destination using the pathfinding object.
      * @param loc The new destination
-     * @return Whether the step was successful
      * @throws GameActionException
      */
-    public boolean stepTowardsDestination(MapLocation loc) throws GameActionException {
+    public void stepTowardsDestination(MapLocation loc) throws GameActionException {
         // detect if the destination has changed
         if (!loc.equals(destination)) {
             destination = loc;
@@ -68,55 +67,33 @@ public abstract class RobotAI {
         Direction dir = pathing.findPath();
         for (RobotInfo robot : rc.senseNearbyRobots(-1, enemyTeam)) {
             if (robot.getType() == RobotType.HEADQUARTERS && rc.getLocation().add(dir).distanceSquaredTo(robot.getLocation()) <= 9) {
-                return false;
+                return;
             }
         }
-        return tryMove(dir);
+        tryMove(dir);
     }
-
-    protected final int[] attackPriorities = {
-        1, // HEADQUARTERS
-        4, // CARRIER
-        6, // LAUNCHER
-        2, // DESTABILIZER
-        3, // BOOSTER
-        5, // AMPLIFIER
-    };
 
     /**
      * Returns a value heuristic that determines attack priority.
      * @param robot The robot to evaluate
      * @return The value of the robot
      */
-    public MapLocation getAttackTarget(int radiusSquared) throws GameActionException {
-        MapLocation bestRobot = null;
-        int bestPriority = 0;
-        int bestHealth = 0;
-
-        for (RobotInfo robot : rc.senseNearbyRobots(radiusSquared, enemyTeam)) {
-            if (robot.type == RobotType.HEADQUARTERS) continue;
-            else if (attackPriorities[robot.type.ordinal()] < bestPriority) continue;
-
-            if (bestRobot == null
-            || attackPriorities[robot.type.ordinal()] > bestPriority
-            || robot.health < bestHealth) {
-                bestRobot = robot.location;
-                bestPriority = attackPriorities[robot.type.ordinal()];
-                bestHealth = robot.health;
-            }
-        }
-        return bestRobot;
+    public int enemyValue(RobotInfo robot) {
+        if (robot.getType() == RobotType.HEADQUARTERS) return Integer.MIN_VALUE;
+        return -robot.health;
     }
 
-    public RobotAI(RobotController rc) throws GameActionException {
+
+    public RobotAI(RobotController rc, int id) throws GameActionException {
         this.rc = rc;
+        this.id = id;
         
         this.rng = new Random(id);
         this.seed = rng.nextInt();
 
         this.comm = new Communication(rc);
         // this.pathing = new WaypointPathfinding(rc);
-        this.pathing = new NaivePathfinding(rc, rng);
+        this.pathing = new NaivePathfinding(rc);
         
         this.aliveTurns = 0;
 

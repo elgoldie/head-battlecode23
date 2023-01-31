@@ -1,4 +1,4 @@
-package head_latest.bots;
+package head_v4.bots;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,23 +16,18 @@ public class HeadquartersAI extends RobotAI {
     }
 
     public SpawningState state;
-    public int anchorCraftCooldown;
 
+    public int anchorCraftCooldown;
     public int myIndex;
     public RobotType typeToSpawn;
 
-    public int robotsBuilt;
-
     public ArrayList<MapLocation> spawningLocations;
 
-    public HeadquartersAI(RobotController rc) throws GameActionException {
-        super(rc);
-        
+    public HeadquartersAI(RobotController rc, int id) throws GameActionException {
+        super(rc, id);
         state = SpawningState.OPENING;
-        anchorCraftCooldown = 100;
-
+        anchorCraftCooldown = 0;
         myIndex = -1;
-        robotsBuilt = 0;
 
         spawningLocations = new ArrayList<>();
     }
@@ -59,7 +54,6 @@ public class HeadquartersAI extends RobotAI {
     public boolean tryToBuildRobot(RobotType type, MapLocation loc) throws GameActionException {
         if (rc.canBuildRobot(type, loc)) {
             rc.buildRobot(type, loc);
-            robotsBuilt++;
             spawningLocations.remove(loc);
             return true;
         }
@@ -75,18 +69,16 @@ public class HeadquartersAI extends RobotAI {
      */
     public void behaviorOpeningSpawning() throws GameActionException {
         if (rc.getRoundNum() == 1) {
-            for (int i = 0; i < 3; i++) {
-                MapLocation newLoc = spawningLocations.get(rng.nextInt(spawningLocations.size()));
-                tryToBuildRobot(RobotType.LAUNCHER, newLoc);
-            }
-            for (int i = 0; i < 2; i++) {
+            for (int i = 0; i < 4; i++) {
                 MapLocation newLoc = spawningLocations.get(rng.nextInt(spawningLocations.size()));
                 tryToBuildRobot(RobotType.CARRIER, newLoc);
             }
+            MapLocation newLoc = spawningLocations.get(rng.nextInt(spawningLocations.size()));
+            tryToBuildRobot(RobotType.LAUNCHER, newLoc);
         } else {
             for (int i = 0; i < 2; i++) {
                 MapLocation newLoc = spawningLocations.get(rng.nextInt(spawningLocations.size()));
-                tryToBuildRobot(RobotType.CARRIER, newLoc);
+                tryToBuildRobot(RobotType.LAUNCHER, newLoc);
             }
         }
     }
@@ -101,10 +93,7 @@ public class HeadquartersAI extends RobotAI {
         MapLocation newLoc;
         for (int i = 0; i < 5; i++) {
             newLoc = spawningLocations.get(rng.nextInt(spawningLocations.size()));
-
-            if (robotsBuilt % 40 == 10) {
-                typeToSpawn = RobotType.AMPLIFIER;
-            } else if (rng.nextInt(2) == 0) {
+            if (rng.nextInt(2) == 0) {
                 typeToSpawn = RobotType.CARRIER;
             } else {
                 typeToSpawn = RobotType.LAUNCHER;
@@ -124,9 +113,7 @@ public class HeadquartersAI extends RobotAI {
         for (int i = 0; i < 5; i++) {
             newLoc = spawningLocations.get(rng.nextInt(spawningLocations.size()));
             if (rng.nextInt(5) == 0) {
-                if (robotsBuilt % 40 == 10) {
-                    typeToSpawn = RobotType.AMPLIFIER;
-                } else if (rng.nextInt(8) == 0) {
+                if (rng.nextInt(8) == 0) {
                     typeToSpawn = RobotType.CARRIER;
                 } else {
                     typeToSpawn = RobotType.LAUNCHER;
@@ -161,16 +148,17 @@ public class HeadquartersAI extends RobotAI {
             }
         }
 
-        boolean anchorPenaltyApplies = rc.getRoundNum() >= 200 && rc.getNumAnchors(Anchor.STANDARD) == 0 && !rc.canBuildAnchor(Anchor.STANDARD);
-        if (anchorCraftCooldown <= 0 && rc.canBuildAnchor(Anchor.STANDARD)) {
-            System.out.println("I just built an anchor!");
-            rc.buildAnchor(Anchor.STANDARD);
-            anchorCraftCooldown = 100;
+        if (rc.getRobotCount() > 10 && anchorCraftCooldown <= 0 && rc.getNumAnchors(Anchor.STANDARD) == 0) {
+            if (rc.canBuildAnchor(Anchor.STANDARD)) {
+                rc.buildAnchor(Anchor.STANDARD);
+                System.out.println("I just built an anchor!");
+                anchorCraftCooldown = 50;
+            }
         }
 
-        // if (rc.canBuildAnchor(Anchor.ACCELERATING)) {
-        //     rc.buildAnchor(Anchor.ACCELERATING);
-        // }
+        if (rc.canBuildAnchor(Anchor.ACCELERATING)) {
+            rc.buildAnchor(Anchor.ACCELERATING);
+        }
 
         if (rc.getRobotCount() >= 30) {
             state = SpawningState.MIDGAME;
@@ -178,7 +166,7 @@ public class HeadquartersAI extends RobotAI {
             state = SpawningState.EARLYGAME;
         }
 
-        if (!spawningLocations.isEmpty() && !(anchorPenaltyApplies && rng.nextInt(3) != 0)) {
+        if (!spawningLocations.isEmpty()) {
             switch (state) {
                 case OPENING:
                     behaviorOpeningSpawning();

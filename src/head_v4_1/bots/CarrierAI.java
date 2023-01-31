@@ -1,8 +1,9 @@
-package head_latest.bots;
+package head_v4_1.bots;
 
 import java.util.HashSet;
 
 import battlecode.common.*;
+import head_v4_1.path.WaypointPathfinding;
 
 public class CarrierAI extends RobotAI {
 
@@ -23,8 +24,8 @@ public class CarrierAI extends RobotAI {
 
     public HashSet<MapLocation> fullWells;
 
-    public CarrierAI(RobotController rc) throws GameActionException {
-        super(rc);
+    public CarrierAI(RobotController rc, int id) throws GameActionException {
+        super(rc, id);
         state = CarrierState.GO_TO_WELL;
 
         // pathing = new WaypointPathfinding(rc);
@@ -280,7 +281,7 @@ public class CarrierAI extends RobotAI {
 
             int radius = rc.getType().actionRadiusSquared;
             MapLocation target = getAttackTarget(radius);
-
+            
             if (target != null && rc.canAttack(target)) {      
                 rc.attack(target);
             }

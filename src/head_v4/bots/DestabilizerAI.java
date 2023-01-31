@@ -1,11 +1,11 @@
-package head_latest.bots;
+package head_v4.bots;
 
 import battlecode.common.*;
 
 public class DestabilizerAI extends RobotAI {
     
-    public DestabilizerAI(RobotController rc) throws GameActionException {
-        super(rc);
+    public DestabilizerAI(RobotController rc, int id) throws GameActionException {
+        super(rc, id);
     }
 
     @Override
