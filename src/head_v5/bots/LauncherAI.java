@@ -1,4 +1,4 @@
-package head_latest.bots;
+package head_v5.bots;
 
 import battlecode.common.*;
 
@@ -66,10 +66,10 @@ public class LauncherAI extends RobotAI {
     @Override
     public boolean stepTowardsDestination(MapLocation destination) throws GameActionException {
         rc.setIndicatorString(destination.toString());
-        if (rng.nextBoolean()) {
+        if (rng.nextInt(3) == 0) {
             MapLocation lowestIDNeighbor = null;
-            int lowestID = rc.getID();
-            // int lowestID = Integer.MAX_VALUE;
+            // int lowestID = rc.getID();
+            int lowestID = Integer.MAX_VALUE;
             for (RobotInfo robot : rc.senseNearbyRobots(-1, myTeam)) {
                 if (robot.getType() == RobotType.LAUNCHER && robot.getID() < lowestID) {
                     lowestID = robot.getID();
